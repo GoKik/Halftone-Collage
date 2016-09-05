@@ -134,45 +134,6 @@ public class area {
     }
   }
   
-  public void updateDiv1(float n, boolean h, area child) {
-    if (h == div.horizontal)  {
-      if (child == areas[0]) {
-        div.min = n;
-        if (parent != null) {
-          parent.updateDiv2(n, h, this, 0);
-        }
-      } else {
-        div.max = n;
-        if (parent != null) {
-          parent.updateDiv2(n, h, this, 1);
-        }
-      }
-    } else {
-      if (parent != null) {
-        parent.updateDiv1(n, h, this);
-      }
-    }
-  }
-  
-  public void updateDiv2(float n, boolean h, area child, int num) {
-    if (h == div.horizontal) {
-      if (child != areas[num]) {
-        if (num == 0) {
-          div.min = n;
-        } else {
-          div.max = n;
-        }
-      } else {
-        if (parent != null) {
-          parent.updateDiv2(n, h, this, num);
-        }
-      }
-    } else {
-      if (parent != null) {
-        parent.updateDiv2(n, h, this, num);
-      }
-    }
-  }
   
   public void rebuild() {
     div = null;
