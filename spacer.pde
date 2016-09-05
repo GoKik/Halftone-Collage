@@ -1,55 +1,53 @@
 public class spacer {
 
   public boolean horizontal;
-  public float xPos, yPos, min, max;
+  public float xPos, yPos;
   private area parent;
 
   private boolean mouseOver = false, dragged = false;
   private float dragx = 0, dragy = 0;
 
-  public spacer(float x, float y, boolean h, float mi, float ma, area p) {
+  public spacer(float x, float y, boolean h, area p) {
     xPos = x;
     yPos = y;
     horizontal = h;
-    min = mi;
-    max = ma;
     parent = p;
   }
 
   public void draw() {
     stroke(vCol);
+    fill(vCol);
     strokeWeight(1);
     float x = xPos*scF;
     float y = yPos*scF;
     if (!mouseOver) {
       if (horizontal) {
-        line(x-10, y, x+10, y);
+        rect(x-10, y-2, 20, 4, 2);
       } else {
-        line(x, y-10, x, y+10);
+        rect(x-2, y-10, 4, 20, 2);
       }
     } else {
-      if (!dragged) {
+        fill(bgCol, 200);
+        noStroke();
+        rectMode(CENTER);
+        rect(x, y, horizontal?24:55, horizontal?55:24, 12);
+        rectMode(CORNER);
+        stroke(vCol);
         line(x-5, y-5, x+5, y+5);
         line(x+5, y-5, x-5, y+5);
         
         if (horizontal) {
-          line(x+5, y+10, x, y+15);
-          line(x-5, y+10, x, y+15);
-          line(x+5, y-10, x, y-15);
-          line(x-5, y-10, x, y-15);
+          line(x+5, y+14, x, y+19);
+          line(x-5, y+14, x, y+19);
+          line(x+5, y-14, x, y-19);
+          line(x-5, y-14, x, y-19);
         } else {
-          line(x-10, y+5, x-15, y);
-          line(x-10, y-5, x-15, y);
-          line(x+10, y+5, x+15, y);
-          line(x+10, y-5, x+15, y);
+          line(x-14, y+5, x-19, y);
+          line(x-14, y-5, x-19, y);
+          line(x+14, y+5, x+19, y);
+          line(x+14, y-5, x+19, y);
         }
-      } else {
-        if (horizontal) {
-          line(x-20, y, x+20, y);
-        } else {
-          line(x, y-20, x, y+20);
-        }
-      }
+      
     }
   }
 
@@ -79,10 +77,10 @@ public class spacer {
   public void mouseDragged(float mx, float my) {
     if (dragged) {
       if (horizontal) {
-        yPos = max(min, min(max, my + dragy));
+        yPos = getDivPos(this, my + dragy);
         parent.transform(yPos, horizontal);
       } else {
-        xPos = max(min, min(max, mx + dragx));
+        xPos = getDivPos(this, mx + dragx);
         parent.transform(xPos, horizontal);
       }
     }

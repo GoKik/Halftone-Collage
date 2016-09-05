@@ -20,24 +20,29 @@ float bitH = 4.9; //height between apex of the cone and place of widest diameter
 float bitMin = 0.15; //diameter at apex of the cone (mm)
 
 //set dimensions of your material
-float materialW = 1500; // width of material (mm)
-float materialH = 1500; // height of material (mm)
+float materialW = 800; // width of material (mm)
+float materialH = 800; // height of material (mm)
 
 //set milling-speed
 float hOut = 2.0; // offset to material
 float sIn = 150; // Feedrate
 float sOut = 700; // Seekrate
 
+boolean dotted = false;
 
+color vCol = color(255);
+color bgCol = color(30);
 
-color vCol = color(0);
-
-
+ArrayList<area> prints = new ArrayList<area>();
 ArrayList<Point[]> errors = new ArrayList<Point[]>();
+ArrayList<spacer> hor = new ArrayList<spacer>();
+ArrayList<spacer> vert = new ArrayList<spacer>();
 
 PImage image;
+String imgfile;
 float maxRad = 3.1;
 boolean render = false;
+boolean print = false;
 float minFree = 0;
 float imgW;
 float imgF = 1;
@@ -64,15 +69,15 @@ void setup() {
 }
 
 void draw() {
-  background(255);
+  background(bgCol);
   translate(materialX*scF,materialY*scF);
-  
+
   if (!render && image != null) {
     image(image, imgX*scF, imgY*scF, imgW*scF, imgW*scF*imgF);
   }
-  
+
   main.draw();
-   
+ 
   if (render) {
     stroke(255,0,0);
     for (int i = 0; i < errors.size(); i++) {
@@ -80,13 +85,114 @@ void draw() {
     }
   }
   
+  
+  if (print) {
+    textAlign(CENTER, CENTER);
+    fill(0);
+    for (int i = 0; i < prints.size(); i++) {
+      textSize(min(prints.get(i).aWidth*scF, prints.get(i).aHeight*scF)/2);
+      text(i+1, prints.get(i).xPos*scF+prints.get(i).aWidth/2*scF, prints.get(i).yPos*scF+prints.get(i).aHeight/2*scF);
+    }
+  }
+  
+  noStroke();
   translate(-materialX*scF,-materialY*scF);
-  fill(30);
+  
+  fill(bgCol);
   rect(0,0,materialX*scF,height);
   rect(0,0,width,materialY*scF);
   rect(0,height-materialY*scF,width,materialY*scF);
   rect(width-materialX*scF,0,materialX*scF,height);
+  
+  fill(vCol);
+  textSize(10);
+  textAlign(LEFT);
+  
+  text("Max. Radius: " + maxRad, 20, 100);
+  text("Min. Free: " + minFree, 20, 120);
+  text("Bit Width: " + bitW, 20, 150);
+  text("Bit Min: " + bitMin, 20, 170);
+  text("Material Width: " + materialW, 20, 200);
+  text("Material Height: " + materialH, 20, 220);
+  
+  if (print) {
+    text("Part Count: " + prints.size(), 20, 260);
+    float sum = 0;
+    for (int i = 0; i < prints.size(); i++) {
+      int h = (int)prints.get(i).time()/60;
+      int m = (int)prints.get(i).time()-h*60;
+      text("Part " + (i+1) + ": "+h+"h "+m+"m", 20, 310+(i*20));
+      sum += prints.get(i).time();
+    }
+    int h = (int)sum/60;
+    int m = (int)sum-h*60;
+    text("Approx. Milling Time (All): "+h+"h "+m+"m", 20, 280);
+  }
+}
 
+void registerDiv(spacer d, boolean h) {
+  if (h) {
+    if (hor.size() == 0 || d.yPos < hor.get(0).yPos) {
+      hor.add(0, d);
+    } else {
+      for (int i=hor.size()-1; i>=0; i--) {
+        if (d.yPos>hor.get(i).yPos) {
+          hor.add(i+1, d);
+          break;
+        }
+      }
+    }
+  } else {
+    if (vert.size() == 0 || d.xPos < vert.get(0).xPos) {
+      vert.add(0, d);
+    } else {
+      for (int i=vert.size()-1; i>=0; i--) {
+        if (d.xPos>vert.get(i).xPos) {
+          vert.add(i+1, d);
+          break;
+        }
+      }
+    }
+  }
+}
+
+float getDivPos(spacer d, float p) {
+  int c = 30;
+  if (d.horizontal) {
+    int i = hor.indexOf(d);
+    int ia=-1, ib=-1;
+    for (int j=i-1; j>=0; j--) {
+      if (d.parent.hasChild(hor.get(j).parent) || hor.get(j).parent.hasChild(d.parent)) {
+        ia = j;
+        break;
+      }
+    }
+    for (int j=i+1; j<hor.size(); j++) {
+      if (d.parent.hasChild(hor.get(j).parent) || hor.get(j).parent.hasChild(d.parent)) {
+        ib = j;
+        break;
+      }
+    }
+    p = min((ib!=-1?hor.get(ib).yPos-c:materialH), max(ia!=-1?hor.get(ia).yPos+c:0, p));
+    return p;
+  } else {
+    int i = vert.indexOf(d);
+    int ia=-1, ib=-1;
+    for (int j=i-1; j>=0; j--) {
+      if (d.parent.hasChild(vert.get(j).parent) || vert.get(j).parent.hasChild(d.parent)) {
+        ia = j;
+        break;
+      }
+    }
+    for (int j=i+1; j<vert.size(); j++) {
+      if (d.parent.hasChild(vert.get(j).parent) || vert.get(j).parent.hasChild(d.parent)) {
+        ib = j;
+        break;
+      }
+    }
+    p = min((ib!=-1?vert.get(ib).xPos-c:materialW), max(ia!=-1?vert.get(ia).xPos+c:0, p));
+    return p;
+  }
 }
 
 void printGcode(File folder) {
@@ -96,63 +202,58 @@ void printGcode(File folder) {
     sIn = 500;
     sOut = 1200;
   }
-  
+  */
   if (folder == null) {
     return;
   }
-  ArrayList<String> output = new ArrayList<String>();
-  boolean in = false;
-  output.add("G92 X0 Y0 Z0");
-  output.add("G21");
-  output.add("G90");
-  output.add("G1 Z5.0 F180.0");
-  for (int i = 0; i < avgs.size(); i++) {
-    for (int j = 0; j < avgs.get(i).size(); j++) {
-      Point p = new Point(avgs.get(i).get(j).x, avgs.get(i).get(j).y, avgs.get(i).get(j).data);
-      p.y = materialH-p.y;
-      if (p.x < borderW/2 || p.x > materialW-(borderW/2) || p.y < borderH/2 || p.y > materialH-(borderH/2)) {
-        if (in) {
-          output.add("G1 Z"+hOut+" F"+sIn);
-          in = false;
-        }
-        continue;
-      }
-      if (dotted) {
-        if (p.data > 0) {
-          output.add("G0 X"+p.x+" Y"+p.y+" F"+sOut);
-          output.add("G1 Z"+(-(p.data/bitW)*bitH)+" F"+sIn);
-          output.add("G1 Z"+hOut+" F"+sIn);
-        }
-      } else {
-        if (in) {
-          if (p.data > 0) {
-            output.add("G1 X"+p.x+" Y"+p.y+" Z"+(-(p.data/bitW)*bitH)+" F"+sIn);
-          } else {
-            output.add("G1 Z"+hOut+" F"+sIn);
-            in = false;
-          }
-        } else {
-          if (p.data > 0) {
-            output.add("G0 X"+p.x+" Y"+p.y+" F"+sOut);
-            output.add("G1 Z"+(-(p.data/bitW)*bitH)+" F"+sIn);
-            in = true;
-          }
-        }
-      }
-    }
-    if (in) {
-      output.add("G1 Z"+hOut+" F"+sIn);
-      in = false;
-    }
+  noLoop();
+  main.print(folder);
+  ArrayList<String> data = new ArrayList<String>();
+  data.add("Project Data");
+  data.add("------------");
+  data.add("File Path: " + imgfile);
+  data.add("Folder Path: " + folder.getAbsolutePath());
+  data.add(" ");
+  data.add("Full Width: " + materialW + "mm");
+  data.add("Full Height: " + materialH + "mm");
+  data.add(" ");
+  data.add("Bit Width: " + bitW + "mm");
+  data.add("Bit Height: " + bitH + "mm");
+  data.add("Bit Min.: " + bitMin + "mm");
+  data.add(" ");
+  data.add("Max. Radius: " + maxRad + "mm");
+  data.add("Min. Free: " + minFree + "mm");
+  data.add(" ");
+  data.add("- - - - - - - - -");
+  data.add("Parts Dimensions:");
+  data.add("- - - - - - - - -");
+  data.add(" ");
+  float sum = 0;
+  for (int i = 0; i < prints.size(); i++) {
+    data.add("Part " + (i+1) + ":");
+    data.add("  W: " + (prints.get(i).aWidth-prints.get(i).bWidth*2) + "mm | H: " + (prints.get(i).aHeight-prints.get(i).bHeight*2) + "mm");
+    int h = (int)prints.get(i).time()/60;
+    int m = (int)prints.get(i).time()-h*60;
+    data.add("  Approx. Time: "+h+"h "+m+"m");
+    sum += prints.get(i).time();
+    data.add("  Color: " + (prints.get(i).black?"Black":"White"));
+    data.add(" ");
   }
-  if (in) {
-    output.add("G1 Z"+hOut+" F"+sIn);
-    in = false;
-  }
-  output.add("G0 X0.000 Y0.000 F"+sOut);
-  String[] gcode = output.toArray(new String[output.size()]);
-  saveStrings(selection.getAbsolutePath(), gcode);
-  */
+  int h = (int)sum/60;
+  int m = (int)sum-h*60;
+  data.add("Approx. Milling Time (All - " + prints.size() + " Parts): "+h+"h "+m+"m");
+  data.add("Seekrate: " + sOut + "mm/min");
+  data.add("Feedrate: " + sIn + "mm/min");
+  print = true;
+  redraw();
+  delay(2000);
+  String[] dims = data.toArray(new String[data.size()]);
+  saveStrings(folder.getAbsolutePath()+"/dimens.txt", dims);
+  PImage thumbnail = get();
+  thumbnail.save(folder.getAbsolutePath()+"/thumbnail.jpg");
+  prints.clear();
+  print = false;
+  loop();
 }
 
 void getErrors() {
@@ -187,6 +288,7 @@ void fileSelected(File selection) {
     println("User selected " + selection.getAbsolutePath());
     String file = selection.getAbsolutePath();
     image = loadImage(file);
+    imgfile = file;
     imgW = materialW;
     imgF = (float)image.height/image.width;
     image.filter(GRAY);
