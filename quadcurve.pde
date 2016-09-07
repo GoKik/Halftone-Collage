@@ -28,8 +28,6 @@ float hOut = 2.0; // offset to material
 float sIn = 150; // Feedrate
 float sOut = 700; // Seekrate
 
-boolean dotted = false;
-
 color vCol = color(255, 255, 255);
 color bgCol = color(30);
 

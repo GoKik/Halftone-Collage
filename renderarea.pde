@@ -6,6 +6,7 @@ public class renderarea {
   public int linesR;
   public int steps = (int)(materialH / distance); 
   public boolean linked = true;
+  public boolean dotted = false;
 
   public float time = 0;
   private float[] pos = new float[3];
@@ -47,6 +48,7 @@ public class renderarea {
           ellipse(midx-(0.6*s), midy+(0.6*s), s, s);
           ellipse(midx+(0.6*s), midy+(0.6*s), s, s);
           ellipse(midx+(1.7*s), midy+(0.6*s), s, s);
+          ellipse(midx+(0.6*s), midy-(1.7*s), s, s);
           fill(parent.black?bgCol:vCol);
           textSize(s*0.9);
           textAlign(CENTER, CENTER);
@@ -59,19 +61,26 @@ public class renderarea {
           text("►", midx-(0.6*s), midy+(0.5*s));
           text("▲", midx+(0.6*s), midy+(0.5*s));
           text("▼", midx+(1.7*s), midy+(0.6*s));
+          if (dotted) {
+            ellipse(midx+(0.8*s), midy-(1.7*s), 0.3*s, 0.3*s);
+            ellipse(midx+(0.4*s), midy-(1.7*s), 0.3*s, 0.3*s);
+          } else {
+            rect(midx+(0.25*s), midy-(1.85*s), 0.7*s, 0.3*s, 0.15*s);
+          }
           if (!parent.ownC()) {
             fill(parent.black?vCol:bgCol);
-            ellipse(midx, midy-(1.7*s), s, s);
+            ellipse(midx-(0.6*s), midy-(1.7*s), s, s);
             noFill();
             stroke(parent.black?bgCol:vCol);
             if (linked) {
-              ellipse(midx-0.1*s, midy-(1.7*s), 0.3*s, 0.3*s);
-              ellipse(midx+0.1*s, midy-(1.7*s), 0.3*s, 0.3*s);
+              ellipse(midx-0.7*s, midy-(1.7*s), 0.3*s, 0.3*s);
+              ellipse(midx-0.5*s, midy-(1.7*s), 0.3*s, 0.3*s);
             } else {
-              ellipse(midx-0.2*s, midy-(1.7*s), 0.3*s, 0.3*s);
-              ellipse(midx+0.2*s, midy-(1.7*s), 0.3*s, 0.3*s);
+              ellipse(midx-0.8*s, midy-(1.7*s), 0.3*s, 0.3*s);
+              ellipse(midx-0.4*s, midy-(1.7*s), 0.3*s, 0.3*s);
             }
           }
+          
         } else {
           ellipse(midx, midy, s/2, s/2);
         }
@@ -349,8 +358,12 @@ public class renderarea {
       }
       click = true;
     }
-    if (mouseOver && !parent.ownC() && sqrt(sq(mx-midx)+sq(my-(midy-1.7*s))) < r) {
+    if (mouseOver && !parent.ownC() && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy-1.7*s))) < r) {
       linked = !linked;
+    }
+    if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy-1.7*s))) < r) {
+      dotted = !dotted;
+      click = true;
     }
     if (render && click) {
       parent.setRenderData(this, linked);

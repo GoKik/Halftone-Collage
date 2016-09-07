@@ -144,6 +144,7 @@ public class area {
         r.linesL = renderframe.linesL;
         r.distance = renderframe.distance;
         r.steps = renderframe.steps;
+        r.dotted = renderframe.dotted;
       }
     }
   }
@@ -157,6 +158,7 @@ public class area {
         renderframe.linesL = r.linesL;
         renderframe.distance = r.distance;
         renderframe.steps = r.steps;
+        renderframe.dotted = r.dotted;
       }
       render();
     }
