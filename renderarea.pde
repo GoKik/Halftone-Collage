@@ -242,10 +242,10 @@ public class renderarea {
           if (p.data > 0) {
             output.add("G0 X"+p.x+" Y"+p.y+" F"+sOut);
             go(p.x, p.y, null, sOut);
-            output.add("G1 Z"+(-(p.data/bitW)*bitH)+" F"+sIn);
-            go(null, null, (-(p.data/bitW)*bitH), sIn);
-            output.add("G1 Z"+hOut+" F"+sIn);
-            go(null, null, hOut, sIn);
+            output.add("G1 Z"+(-(p.data/bitW)*bitH)+" F"+sInD);
+            go(null, null, (-(p.data/bitW)*bitH), sInD);
+            output.add("G1 Z"+hOut+" F"+sInD);
+            go(null, null, hOut, sInD);
           }
         } else {
           if (in) {
@@ -269,14 +269,14 @@ public class renderarea {
         }
       }
       if (in) {
-        output.add("G1 Z"+hOut+" F"+sIn);
-        go(null, null, hOut, sIn);
+        output.add("G1 Z"+hOut+" F"+(dotted?sInD:sIn));
+        go(null, null, hOut, (dotted?sInD:sIn));
         in = false;
       }
     }
     if (in) {
-      output.add("G1 Z"+hOut+" F"+sIn);
-      go(null, null, hOut, sIn);
+      output.add("G1 Z"+hOut+" F"+(dotted?sInD:sIn));
+      go(null, null, hOut, (dotted?sInD:sIn));
       in = false;
     }
     output.add("G0 X0.000 Y0.000 F"+sOut);

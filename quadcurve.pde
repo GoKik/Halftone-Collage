@@ -27,6 +27,7 @@ float materialH = 800; // height of material (mm)
 float hOut = 2.0; // offset to material
 float sIn = 150; // Feedrate
 float sOut = 700; // Seekrate
+float sInD = 400; // Feedrate Dotted
 
 color vCol = color(255, 255, 255);
 color bgCol = color(30);
@@ -124,42 +125,52 @@ void draw() {
   text("Material Height: " + materialH + "mm", 20, 235);
   text("Seekrate: " + sOut + "mm/min", 20, 280);
   text("Feedrate: " + sIn + "mm/min", 20, 305);
+  text("Feedrate (Dot.): " + sInD + "mm/min", 20, 330);
+  text("Floating Height: " + hOut + "mm", 20, 355);
 
-  text("Part Count: " + prints.size(), 20, 350);
+  text("Part Count: " + prints.size(), 20, 400);
   float sum = 0;
   for (int i = 0; i < prints.size(); i++) {
     int h = (int)prints.get(i).time()/60;
     int m = (int)prints.get(i).time()-h*60;
-    text("Part " + (i+1) + ": "+h+"h "+m+"m", 20, 405+(i*25));
+    text("Part " + (i+1) + ": "+h+"h "+m+"m", 20, 455+(i*25));
     sum += prints.get(i).time();
   }
   int h = (int)sum/60;
   int m = (int)sum-h*60;
-  text("Approx. Milling Time (All): "+h+"h "+m+"m", 20, 375);
+  text("Approx. Milling Time (All): "+h+"h "+m+"m", 20, 425);
   
   if (!print) {
     fill(vCol);
     rect(20, 20, (sb-60)/2, 20, 10);
     rect(40+(sb-60)/2, 20, (sb-60)/2, 20, 10);
-    ellipse(sb-100, 80, 20, 20);
-    ellipse(sb-75, 80, 20, 20);
-    rect(sb-110, 95, 45, 20, 10);
-    ellipse(sb-100, 280, 20, 20);
-    ellipse(sb-75, 280, 20, 20);
-    ellipse(sb-100, 305, 20, 20);
-    ellipse(sb-75, 305, 20, 20);
+    ellipse(sb-70, 80, 20, 20);
+    ellipse(sb-45, 80, 20, 20);
+    rect(sb-80, 95, 45, 20, 10);
+    ellipse(sb-70, 280, 20, 20);
+    ellipse(sb-45, 280, 20, 20);
+    ellipse(sb-70, 305, 20, 20);
+    ellipse(sb-45, 305, 20, 20);
+    ellipse(sb-70, 330, 20, 20);
+    ellipse(sb-45, 330, 20, 20);
+    ellipse(sb-70, 355, 20, 20);
+    ellipse(sb-45, 355, 20, 20);
     fill(bgCol);
     textAlign(CENTER, CENTER);
     text("Render", 20+((sb-60)/4), 30-1);
     text("Generate Files", 40+((sb-60)*0.75), 30-1);
-    text("Go", sb-87.5, 105-1);
+    text("Go", sb-57.5, 105-1);
     textSize(15);
-    text("-", sb-100, 80-3);
-    text("+", sb-75, 80-3);
-    text("-", sb-100, 280-3);
-    text("+", sb-75, 280-3);
-    text("-", sb-100, 305-3);
-    text("+", sb-75, 305-3);
+    text("-", sb-70, 80-3);
+    text("+", sb-45, 80-3);
+    text("-", sb-70, 280-3);
+    text("+", sb-45, 280-3);
+    text("-", sb-70, 305-3);
+    text("+", sb-45, 305-3);
+    text("-", sb-70, 330-3);
+    text("+", sb-45, 330-3);
+    text("-", sb-70, 355-3);
+    text("+", sb-45, 355-3);
   }
 }
 
@@ -229,13 +240,6 @@ float getDivPos(spacer d, float p) {
 }
 
 void printGcode(File folder) {
-  /*
-  if (dotted) {
-   hOut = 0.7;
-   sIn = 500;
-   sOut = 1200;
-   }
-   */
   if (folder == null) {
     return;
   }
@@ -258,6 +262,11 @@ void printGcode(File folder) {
   data.add("Max. Radius: " + maxRad + "mm");
   data.add("Min. Free: " + (minFree[0]==null?"/":minFree[0].x) + "mm");
   data.add(" ");
+  data.add("Seekrate: " + sOut + "mm/min");
+  data.add("Feedrate: " + sIn + "mm/min");
+  data.add("Feedrate (Dotted): " + sInD + "mm/min");
+  data.add("Floating Height: " + hOut + "mm");
+  data.add(" ");
   data.add("- - - - - - - - -");
   data.add("Parts Dimensions:");
   data.add("- - - - - - - - -");
@@ -276,8 +285,6 @@ void printGcode(File folder) {
   int h = (int)sum/60;
   int m = (int)sum-h*60;
   data.add("Approx. Milling Time (All - " + prints.size() + " Parts): "+h+"h "+m+"m");
-  data.add("Seekrate: " + sOut + "mm/min");
-  data.add("Feedrate: " + sIn + "mm/min");
   print = true;
   redraw();
   delay(2000);
@@ -402,43 +409,65 @@ void mouseClicked() {
   if (mouseX > sb/2+10 && mouseX < sb-20 && mouseY > 20 && mouseY < 40) {
     selectFolder("Select a folder to write to:", "printGcode");
   }
-  if (sqrt(sq(mouseX-(sb-100))+sq(mouseY-80)) < 10) {
+  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-80)) < 10) {
     maxRad = float(round((maxRad-0.1)*10))/10;
     if (maxRad < bitMin) {
       maxRad = bitMin;
     }
     change = true;
   }
-  if (sqrt(sq(mouseX-(sb-75))+sq(mouseY-80)) < 10) {
+  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-80)) < 10) {
     maxRad = float(round((maxRad+0.1)*10))/10;
     if (maxRad > bitW) {
       maxRad = bitW;
     }
     change = true;
   }
-  if (sqrt(sq(mouseX-(sb-100))+sq(mouseY-280)) < 10) {
+  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-280)) < 10) {
     sOut-=10;
     if (sOut < 10) {
       sOut = 10;
     }
     change = true;
   }
-  if (sqrt(sq(mouseX-(sb-75))+sq(mouseY-280)) < 10) {
+  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-280)) < 10) {
     sOut+=10;
     change = true;
   }
-  if (sqrt(sq(mouseX-(sb-100))+sq(mouseY-305)) < 10) {
+  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-305)) < 10) {
     sIn-=10;
     if (sIn < 10) {
       sIn = 10;
     }
     change = true;
   }
-  if (sqrt(sq(mouseX-(sb-75))+sq(mouseY-305)) < 10) {
+  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-305)) < 10) {
     sIn+=10;
     change = true;
   }
-  if (mouseX > sb-110 && mouseX < sb-65 && mouseY > 95 && mouseY < 115) {
+  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-330)) < 10) {
+    sInD-=10;
+    if (sInD < 10) {
+      sInD = 10;
+    }
+    change = true;
+  }
+  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-330)) < 10) {
+    sInD+=10;
+    change = true;
+  }
+  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-355)) < 10) {
+    hOut-=0.5;
+    if (hOut < 0.5) {
+      hOut = 0.5;
+    }
+    change = true;
+  }
+  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-355)) < 10) {
+    hOut+=0.5;
+    change = true;
+  }
+  if (mouseX > sb-80 && mouseX < sb-35 && mouseY > 95 && mouseY < 115) {
     getErrors();
   }
   if (change) {
