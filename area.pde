@@ -1,23 +1,23 @@
 public class area {
-  
+
   public float aWidth, aHeight, bWidth, bHeight, xPos, yPos;
   public boolean black = false;
-  
+
   private area[] areas = new area[2];
   private spacer div;
   private renderarea renderframe;
   private area parent;
-  
+
   private boolean mouseOver = false;
   private int curvemode = 0;
-  
+
   private Point curve[] = new Point[4];
   private float angle = 0;
-  
+
   private boolean adrag = false;
-  
+
   float s = 20;
-  
+
   public area(float x, float y, float w, float h, area p) {
     aWidth = w;
     aHeight = h;
@@ -26,14 +26,18 @@ public class area {
     bWidth = 10;
     bHeight = 10;
     parent = p;
+    if (p == null) {
+      curvemode = 2;
+    }
     renderframe = new renderarea(this);
-    
+    prints.add(this);
+
     curve[0] = new Point(x+(0.4*w), y+(h*0.4));
     curve[1] = new Point(x+(0.45*w), y+(0.01*h));
     curve[2] = new Point(x+(0.55*w), y+(0.99*h));
     curve[3] = new Point(x+(0.6*w), y+(h*0.6));
   }
-  
+
   public void draw() {
     noStroke();
     strokeWeight(1);
@@ -72,14 +76,18 @@ public class area {
             }
             noStroke();
             ellipse(midx, midy-s, s, s);
-            if (black) { stroke(0); }
-            else { fill(0); }
+            stroke(bgCol); 
+            if (black) { 
+              fill(0);
+            } else { 
+              fill(255);
+            }
             ellipse(midx, midy-s, s/2, s/2);
             stroke(vCol);
             line(midx+(s*2), midy-(0.5*s), midx+(s*2.5), midy-(0.5*s));
             line(midx+(2.25*s), midy-(0.25*s), midx+(2.25*s), midy-(0.75*s));
             line(midx+(2*s), midy+(0.5*s), midx+(2.5*s), midy+(0.5*s));
-            
+
             line(midx-(0.5*s), midy+(2*s), midx-(0.5*s), midy+(2.5*s));
             line(midx-(0.25*s), midy+(2.25*s), midx-(0.75*s), midy+(s*2.25));
             line(midx+(0.25*s), midy+(2.25*s), midx+(0.75*s), midy+(2.25*s));
@@ -98,7 +106,7 @@ public class area {
       stroke(vCol);
       beginShape();
       vertex(curve[1].x*scF, curve[1].y*scF);
-      bezierVertex(curve[0].x*scF,curve[0].y*scF,curve[3].x*scF,curve[3].y*scF,curve[2].x*scF,curve[2].y*scF);
+      bezierVertex(curve[0].x*scF, curve[0].y*scF, curve[3].x*scF, curve[3].y*scF, curve[2].x*scF, curve[2].y*scF);
       endShape();
       curve[0].draw(scF);
       curve[1].draw(scF);
@@ -117,19 +125,19 @@ public class area {
       fill(255);
       ellipse(midx+(1.5*s)*cos(radians(angle)), midy+(1.5*s)*sin(radians(angle)), s, s);
     } 
-    if (!render) {
+    if (!render && areas[0] == null && areas[1] == null) {
       fill(bgCol);
       noStroke();
-      rect(xPos*scF, yPos*scF,bWidth*scF, aHeight*scF);
-      rect(xPos*scF, yPos*scF,aWidth*scF, bHeight*scF);
+      rect(xPos*scF, yPos*scF, bWidth*scF, aHeight*scF);
+      rect(xPos*scF, yPos*scF, aWidth*scF, bHeight*scF);
       rect(xPos*scF+aWidth*scF-bWidth*scF, yPos*scF, bWidth*scF, aHeight*scF);
       rect(xPos*scF, yPos*scF+aHeight*scF-bHeight*scF, aWidth*scF, bHeight*scF);
     }
   }
-  
-  public void getRenderData(renderarea r) {
-    if (curvemode == 0 && parent != null) {
-      parent.getRenderData(r);
+
+  public void getRenderData(renderarea r, boolean l) {
+    if (curvemode == 0 && parent != null && l) {
+      parent.getRenderData(r, l);
     } else {
       if (r != renderframe) {
         r.linesR = renderframe.linesR;
@@ -139,10 +147,10 @@ public class area {
       }
     }
   }
-  
-  public void setRenderData(renderarea r, int d) {
-    if (curvemode == 0 && parent != null) {
-      parent.setRenderData(r, d+1);
+
+  public void setRenderData(renderarea r, boolean l) {
+    if (curvemode == 0 && parent != null && l) {
+      parent.setRenderData(r, l);
     } else {
       if (r != renderframe) {
         renderframe.linesR = r.linesR;
@@ -153,7 +161,11 @@ public class area {
       render();
     }
   }
-  
+
+  public boolean ownC() {
+    return curvemode != 0;
+  }
+
   public Point[] getCurve() {
     if (curvemode != 0 || parent == null) {
       return curve;
@@ -161,7 +173,7 @@ public class area {
       return parent.getCurve();
     }
   }
-  
+
   public float getAngle() {
     if (curvemode != 0 || parent == null) {
       return angle;
@@ -169,11 +181,11 @@ public class area {
       return parent.getAngle();
     }
   }
-  
+
   public float time() {
     return renderframe.time;
   }
-  
+
   public void divide(boolean h) {
     if (h) {
       div = new spacer(xPos+(aWidth/2), yPos+(aHeight/2), h, this);
@@ -186,8 +198,9 @@ public class area {
       areas[1] = new area(xPos+(aWidth/2), yPos, aWidth/2, aHeight, this);
       registerDiv(div, h);
     }
+    prints.remove(this);
   }
-  
+
   public boolean hasChild(area a) {
     if (areas[0] != null & areas[1] != null) {
       return a==areas[0]||a==areas[1]||areas[0].hasChild(a)||areas[1].hasChild(a);
@@ -195,7 +208,7 @@ public class area {
       return false;
     }
   }
-  
+
   public void rebuild() {
     if (div != null) {
       if (div.horizontal) {
@@ -207,103 +220,116 @@ public class area {
     }
     if (areas[0] != null) {
       areas[0].rebuild();
+      areas[0] = null;
     }
     if (areas[1] != null) {
       areas[1].rebuild();
+      areas[1] = null;
     }
-    areas[0] = null;
-    areas[1] = null;
+    prints.remove(this);
   }
-  
+
+  public void getErrors() {
+    if (areas[0] != null && areas[1] != null) {
+      areas[0].getErrors();
+      areas[1].getErrors();
+    } else {
+      renderframe.getErrors();
+    }
+  }
+
   public void transform(float n, boolean h) {
-     if (h) {
-       areas[0].aHeight = n-yPos;
-       areas[1].aHeight = yPos+aHeight-n;
-       areas[1].yPos = n;
-       areas[0].subtransform(n, 'h');
-       areas[1].subtransform(n, 'y');
-     } else {
-       areas[0].aWidth = n-xPos;
-       areas[1].aWidth = xPos+aWidth-n;
-       areas[1].xPos = n;
-       areas[0].subtransform(n, 'w');
-       areas[1].subtransform(n, 'x');
-     }
+    if (h) {
+      areas[0].aHeight = n-yPos;
+      areas[1].aHeight = yPos+aHeight-n;
+      areas[1].yPos = n;
+      areas[0].subtransform(n, 'h');
+      areas[1].subtransform(n, 'y');
+    } else {
+      areas[0].aWidth = n-xPos;
+      areas[1].aWidth = xPos+aWidth-n;
+      areas[1].xPos = n;
+      areas[0].subtransform(n, 'w');
+      areas[1].subtransform(n, 'x');
+    }
   }
-  
+
   public void subtransform(float n, char b) {
     if (div == null) {
       return;
     }
     switch (b) {
-      case 'x':
-        if (div.horizontal) {
-          div.xPos = xPos+(aWidth/2);
-          areas[0].aWidth = aWidth;
-          areas[0].xPos = xPos;
-          areas[1].aWidth = aWidth;
-          areas[1].xPos = xPos;
-          areas[0].subtransform(n, b);
-          areas[1].subtransform(n, b);
-        } else {
-          areas[0].aWidth = areas[0].xPos+areas[0].aWidth-xPos;
-          areas[0].xPos = xPos;
-          areas[0].subtransform(n, b);
-        }
-        break;
-      case 'y':
-        if (!div.horizontal) {
-          div.yPos = yPos+(aHeight/2);
-          areas[0].aHeight = aHeight;
-          areas[0].yPos = yPos;
-          areas[1].aHeight = aHeight;
-          areas[1].yPos = yPos;
-          areas[0].subtransform(n, b);
-          areas[1].subtransform(n, b);
-        } else {
-          areas[0].aHeight = areas[0].yPos+areas[0].aHeight-yPos;
-          areas[0].yPos = yPos;
-          areas[0].subtransform(n, b);
-        }
-        break;
-      case 'w':
-        if (div.horizontal) {
-          div.xPos = xPos+(aWidth/2);
-          areas[0].aWidth = aWidth;
-          areas[1].aWidth = aWidth;
-          areas[0].subtransform(n, b);
-          areas[1].subtransform(n, b);
-        } else {
-          areas[1].aWidth = xPos+aWidth-areas[1].xPos;
-          areas[1].subtransform(n, b);
-        }
-        break;
-      case 'h':
-        if (!div.horizontal) {
-          div.yPos = yPos+(aHeight/2);
-          areas[0].aHeight = aHeight;
-          areas[1].aHeight = aHeight;
-          areas[0].subtransform(n, b);
-          areas[1].subtransform(n, b);
-        } else {
-          areas[1].aHeight = yPos+aHeight-areas[1].yPos;
-          areas[1].subtransform(n, b);
-        }
-        break;
+    case 'x':
+      if (div.horizontal) {
+        div.xPos = xPos+(aWidth/2);
+        areas[0].aWidth = aWidth;
+        areas[0].xPos = xPos;
+        areas[1].aWidth = aWidth;
+        areas[1].xPos = xPos;
+        areas[0].subtransform(n, b);
+        areas[1].subtransform(n, b);
+      } else {
+        areas[0].aWidth = areas[0].xPos+areas[0].aWidth-xPos;
+        areas[0].xPos = xPos;
+        areas[0].subtransform(n, b);
+      }
+      break;
+    case 'y':
+      if (!div.horizontal) {
+        div.yPos = yPos+(aHeight/2);
+        areas[0].aHeight = aHeight;
+        areas[0].yPos = yPos;
+        areas[1].aHeight = aHeight;
+        areas[1].yPos = yPos;
+        areas[0].subtransform(n, b);
+        areas[1].subtransform(n, b);
+      } else {
+        areas[0].aHeight = areas[0].yPos+areas[0].aHeight-yPos;
+        areas[0].yPos = yPos;
+        areas[0].subtransform(n, b);
+      }
+      break;
+    case 'w':
+      if (div.horizontal) {
+        div.xPos = xPos+(aWidth/2);
+        areas[0].aWidth = aWidth;
+        areas[1].aWidth = aWidth;
+        areas[0].subtransform(n, b);
+        areas[1].subtransform(n, b);
+      } else {
+        areas[1].aWidth = xPos+aWidth-areas[1].xPos;
+        areas[1].subtransform(n, b);
+      }
+      break;
+    case 'h':
+      if (!div.horizontal) {
+        div.yPos = yPos+(aHeight/2);
+        areas[0].aHeight = aHeight;
+        areas[1].aHeight = aHeight;
+        areas[0].subtransform(n, b);
+        areas[1].subtransform(n, b);
+      } else {
+        areas[1].aHeight = yPos+aHeight-areas[1].yPos;
+        areas[1].subtransform(n, b);
+      }
+      break;
     }
   }
-        
-  
+
+
   public void render() {
     if (areas[0] != null && areas[1] != null) {
       areas[0].render();
       areas[1].render();
     } else {
-      if (curvemode == 1) { curvemode = 2; }
+      if (curvemode == 1) { 
+        curvemode = 2;
+      }
       renderframe.render();
+      renderframe.generateGCode();
     }
   }
-  
+
   void print(File folder) {
     if (areas[0] == null && areas[1] == null) {
       String[] out = renderframe.generateGCode();
@@ -315,7 +341,7 @@ public class area {
       areas[1].print(folder);
     }
   }
-  
+
   public void mouseMoved(float mx, float my) {
     if (areas[0] != null && areas[1] != null) {
       areas[0].mouseMoved(mx, my);
@@ -337,7 +363,7 @@ public class area {
       curve[3].hover(mx, my);
     }
   }
-  
+
   public void mouseClicked(float mx, float my) {
     if (areas[0] != null && areas[1] != null) {
       areas[0].mouseClicked(mx, my);
@@ -365,14 +391,18 @@ public class area {
         }
         if (sqrt(sq(mx-(xPos+(aWidth/2)+(2.25*s/scF)))+sq(my-(yPos+(aHeight/2)+(0.5*s/scF)))) <= s/2/scF) {
           bHeight--;
-          if (bHeight < 0) { bHeight = 0; }
+          if (bHeight < 0) { 
+            bHeight = 0;
+          }
         }
         if (sqrt(sq(mx-(xPos+(aWidth/2)-(0.5*s/scF)))+sq(my-(yPos+(aHeight/2)+(2.25*s/scF)))) <= s/2/scF) {
           bWidth++;
         }
         if (sqrt(sq(mx-(xPos+(aWidth/2)+(0.5*s/scF)))+sq(my-(yPos+(aHeight/2)+(2.25*s/scF)))) <= s/2/scF) {
           bWidth--;
-          if (bWidth < 0) { bWidth = 0; }
+          if (bWidth < 0) { 
+            bWidth = 0;
+          }
         }
       }
       if (curvemode == 1 && !render) {
@@ -382,9 +412,8 @@ public class area {
       }
       renderframe.mouseClicked(mx, my);
     }
-    
   }
-  
+
   public void mousePressed(float mx, float my) {
     if (areas[0] != null && areas[1] != null && !render) {
       areas[0].mousePressed(mx, my);
@@ -399,9 +428,9 @@ public class area {
       if (sqrt(sq(mx-(xPos+(aWidth/2)+cos(radians(angle))*(1.5*s/scF)))+sq(my-(yPos+(aHeight/2)+sin(radians(angle))*(1.5*s/scF)))) < s/2/scF) {
         adrag = true;
       }
-    } 
+    }
   }
-  
+
   public void mouseReleased(float mx, float my) {
     if (areas[0] != null && areas[1] != null) {
       areas[0].mouseReleased(mx, my);
@@ -410,7 +439,7 @@ public class area {
     }
     adrag = false;
   }
-  
+
   public void mouseDragged(float mx, float my) {
     if (areas[0] != null && areas[1] != null && !render) {
       areas[0].mouseDragged(mx, my);
@@ -430,9 +459,6 @@ public class area {
           angle = degrees(acos((float)((xPos+(aWidth/2)) - mx)/(-r)));
         }
       }
-    } 
+    }
   }
 }
-      
-  
-  

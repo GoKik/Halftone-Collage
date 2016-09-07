@@ -63,6 +63,7 @@ public class spacer {
   public void mouseClicked(float mx, float my) {
     if (sqrt(sq(mx-xPos)+sq(my-yPos)) <= 10/scF) {
       parent.rebuild();
+      prints.add(parent);
     }
   }
 
