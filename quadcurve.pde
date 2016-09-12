@@ -133,7 +133,7 @@ void draw() {
   for (int i = 0; i < prints.size(); i++) {
     int h = (int)prints.get(i).time()/60;
     int m = (int)prints.get(i).time()-h*60;
-    text("Part " + (i+1) + ": "+h+"h "+m+"m", 20, 455+(i*25));
+    text("Part " + (i+1) + ": "+h+"h "+m+"m  - W: " + prints.get(i).aWidth + "mm, H: " + prints.get(i).aHeight + "mm", 20, 455+(i*25));
     sum += prints.get(i).time();
   }
   int h = (int)sum/60;
@@ -526,7 +526,7 @@ void keyPressed() {
   if (key == 't') {
     selectInput("Select a file to import:", "importSettings");
   }   
-  if (key == ENTER) {
+  if (key == ENTER || key == RETURN) {
     render = !render;
   }
   main.keyPressed();
