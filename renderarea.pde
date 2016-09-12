@@ -80,7 +80,6 @@ public class renderarea {
               ellipse(midx-0.4*s, midy-(1.7*s), 0.3*s, 0.3*s);
             }
           }
-          
         } else {
           ellipse(midx, midy, s/2, s/2);
         }
@@ -365,8 +364,10 @@ public class renderarea {
       dotted = !dotted;
       click = true;
     }
+
     if (render && click) {
       parent.setRenderData(this, linked);
     }
   }
+
 }

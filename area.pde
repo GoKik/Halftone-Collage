@@ -239,6 +239,36 @@ public class area {
       renderframe.getErrors();
     }
   }
+  
+  public float[] getBounds(int mode) {
+    float[] bounds = new float[2];
+    if (mode == 1) {
+      bounds[0] = 0;
+      bounds[1] = aWidth/2;
+    }
+    if (mode == 2) {
+      bounds[0] = 0;
+      bounds[1] = aHeight/2;
+    }
+    if (mode == 3) {
+      bounds[0] = 0;
+      if (parent == null) {
+        bounds[1] = 10000;
+      } else {
+        float spPos = parent.div.horizontal?parent.div.yPos:parent.div.xPos;
+        if (parent.areas[0] == this) {
+          
+        } else {
+          
+        }
+      }
+    }
+    if (mode == 4) {
+      bounds[0] = 0;
+      bounds[1] = 200;
+    }
+    return bounds;
+  }
 
   public void transform(float n, boolean h) {
     if (h) {
@@ -461,6 +491,14 @@ public class area {
           angle = degrees(acos((float)((xPos+(aWidth/2)) - mx)/(-r)));
         }
       }
+    }
+  }
+
+  public void keyPressed() {
+    if (areas[0] != null && areas[1] != null) {
+      areas[0].keyPressed();
+      areas[1].keyPressed();
+      div.keyPressed();
     }
   }
 }

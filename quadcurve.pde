@@ -71,7 +71,7 @@ void setup() {
 }
 
 void draw() {
-  vCol = color(232, 209, 55);
+  vCol = color(246, 85, 59);
   bgCol = color(16, 16, 16);
   background(bgCol);
   translate(materialX*scF, materialY*scF);
@@ -528,6 +528,7 @@ void keyPressed() {
   }   
   if (key == ENTER) {
     render = !render;
-  }    
+  }
+  main.keyPressed();
   main.render();
 }
