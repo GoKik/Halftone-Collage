@@ -10,6 +10,9 @@ public class renderarea {
 
   public float time = 0;
   private float[] pos = new float[3];
+  
+  private String data = new String();
+  private long dataTime = 0;
 
   private ArrayList<ArrayList<Point>> avgs = new ArrayList<ArrayList<Point>>();
 
@@ -79,6 +82,17 @@ public class renderarea {
               ellipse(midx-0.8*s, midy-(1.7*s), 0.3*s, 0.3*s);
               ellipse(midx-0.4*s, midy-(1.7*s), 0.3*s, 0.3*s);
             }
+          }
+          if (dataTime + 2000 > millis()) {
+            int alpha = 255-int((float)(max(1500,millis()-dataTime)-1500)/500*255);
+            fill(bgCol, alpha);
+            noStroke();
+            rectMode(CENTER);
+            rect(midx, midy+1.7*s, textWidth(data)+s, s, 0.5*s);
+            textAlign(CENTER, CENTER);
+            fill(vCol, alpha);
+            text(data, midx, midy+1.7*s);
+            rectMode(CORNER);
           }
         } else {
           ellipse(midx, midy, s/2, s/2);
@@ -317,37 +331,44 @@ public class renderarea {
     boolean click = false;
     if (mouseOver && sqrt(sq(mx-(midx-1.7*s))+sq(my-(midy-0.6*s))) < r) {
       linesL++;
+      data = Integer.toString(linesL);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy-0.6*s))) < r) {
       if (linesL+linesR > 1) { 
         linesL--;
       }
+      data = Integer.toString(linesL);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy-0.6*s))) < r) {
       if (linesL+linesR > 1) {
         linesR--;
       }
+      data = Integer.toString(linesR);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+1.7*s))+sq(my-(midy-0.6*s))) < r) {
       linesR++;
+      data = Integer.toString(linesR);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx-1.7*s))+sq(my-(midy+0.6*s))) < r) {
-      distance+=0.1;
+      distance = float(round((distance+0.1)*10))/10;
+      data = Float.toString(distance);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy+0.6*s))) < r) {
-      distance-=0.1;
+      distance = float(round((distance-0.1)*10))/10;
       if (distance < 0) { 
         distance = 0;
       }
+      data = Float.toString(distance);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy+0.6*s))) < r) {
       steps++;
+      data = Integer.toString(steps);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+1.7*s))+sq(my-(midy+0.6*s))) < r) {
@@ -355,18 +376,23 @@ public class renderarea {
       if (steps < 0) { 
         steps = 0;
       }
+      data = Integer.toString(steps);
       click = true;
     }
     if (mouseOver && !parent.ownC() && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy-1.7*s))) < r) {
       linked = !linked;
+      data = (linked?"Linked":"Unlinked");
+      click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy-1.7*s))) < r) {
       dotted = !dotted;
+      data = (dotted?"Dotted":"Connected");
       click = true;
     }
 
     if (render && click) {
       parent.setRenderData(this, linked);
+      dataTime = millis();
     }
   }
 
