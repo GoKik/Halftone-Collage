@@ -58,12 +58,7 @@ int sb = 300;
 
 void setup() {
   size(1440, 850);
-  scF = min((float)(width-sb)/materialW, (float)height/materialH);
-  materialX = (((width-sb)/scF)-materialW)/2;
-  if (materialX < (sb/scF)) {
-    materialX = sb/scF;
-  }
-  materialY = ((height/scF)-materialH)/2;
+  configDimens();
 
   main = new area(0, 0, materialW, materialH, null);
 
@@ -155,6 +150,10 @@ void draw() {
     ellipse(sb-45, 330, 20, 20);
     ellipse(sb-70, 355, 20, 20);
     ellipse(sb-45, 355, 20, 20);
+    ellipse(sb-70, 210, 20, 20);
+    ellipse(sb-45, 210, 20, 20);
+    ellipse(sb-70, 235, 20, 20);
+    ellipse(sb-45, 235, 20, 20);
     fill(bgCol);
     textAlign(CENTER, CENTER);
     text("Render", 20+((sb-60)/4), 30-1);
@@ -171,6 +170,26 @@ void draw() {
     text("+", sb-45, 330-3);
     text("-", sb-70, 355-3);
     text("+", sb-45, 355-3);
+    text("-", sb-70, 210-3);
+    text("+", sb-45, 210-3);
+    text("-", sb-70, 235-3);
+    text("+", sb-45, 235-3);
+  }
+}
+
+void configDimens() {
+  if (materialW < 10) { materialW = 10; }
+  if (materialH < 10) { materialH = 10; }
+  scF = min((float)(width-sb)/materialW, (float)height/materialH);
+  materialX = (((width-sb)/scF)-materialW)/2;
+  if (materialX < (sb/scF)) {
+    materialX = sb/scF;
+  }
+  materialY = ((height/scF)-materialH)/2;
+  if (main != null) {
+    main.rebuild();
+    main.aWidth = materialW;
+    main.aHeight = materialH;
   }
 }
 
@@ -421,6 +440,26 @@ void mouseClicked() {
     if (maxRad > bitW) {
       maxRad = bitW;
     }
+    change = true;
+  }
+  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-210)) < 10) {
+    materialW+=10;
+    configDimens();
+    change = true;
+  }
+  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-210)) < 10) {
+    materialW-=10;
+    configDimens();
+    change = true;
+  }
+  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-235)) < 10) {
+    materialH+=10;
+    configDimens();
+    change = true;
+  }
+  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-235)) < 10) {
+    materialH-=10;
+    configDimens();
     change = true;
   }
   if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-280)) < 10) {
