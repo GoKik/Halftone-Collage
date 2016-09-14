@@ -355,7 +355,7 @@ public class renderarea {
     }
     if (mouseOver && sqrt(sq(mx-(midx-1.7*s))+sq(my-(midy+0.6*s))) < r) {
       distance = float(round((distance+0.1)*10))/10;
-      data = Float.toString(distance);
+      data = Float.toString(distance)+"mm";
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy+0.6*s))) < r) {
@@ -363,7 +363,7 @@ public class renderarea {
       if (distance < 0) { 
         distance = 0;
       }
-      data = Float.toString(distance);
+      data = Float.toString(distance)+"mm";
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy+0.6*s))) < r) {

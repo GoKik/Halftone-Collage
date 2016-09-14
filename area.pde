@@ -373,6 +373,43 @@ public class area {
       areas[1].print(folder);
     }
   }
+  
+  void exportDimens(ByteArrayOutputStream b) {
+    toByte((int)bWidth, b);
+    toByte((int)bHeight, b);
+    b.write(curvemode==0?0:1);
+    for (int i = 0; i < 4; i++) {
+      toByte((int)curve[i].x, b);
+      toByte((int)curve[i].y, b);
+    }
+    toByte((int)angle, b);
+    if (areas[0] != null && areas[1] != null) {
+      b.write(1);
+      b.write(div.horizontal?1:0);
+      toByte((int)(div.horizontal?div.yPos:div.xPos), b);
+      areas[0].exportDimens(b);
+      areas[1].exportDimens(b);
+    } else {
+      b.write(0);
+    }
+  }
+  
+  void exportRender(ByteArrayOutputStream b) {
+    b.write(black?0:1);
+    toByte(renderframe.distance, b, 100);
+    toByte((int)renderframe.linesL, b);
+    toByte((int)renderframe.linesR, b);
+    toByte((int)renderframe.steps, b);
+    b.write(renderframe.linked?1:0);
+    b.write(renderframe.dotted?1:0);
+    if (areas[0] != null && areas[1] != null) {
+      b.write(1);
+      areas[0].exportRender(b);
+      areas[1].exportRender(b);
+    } else {
+      b.write(0);
+    }
+  }
 
   public void mouseMoved(float mx, float my) {
     if (areas[0] != null && areas[1] != null) {
