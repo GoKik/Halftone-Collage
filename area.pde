@@ -397,8 +397,10 @@ public class area {
   void exportRender(ByteArrayOutputStream b) {
     b.write(black?0:1);
     toByte(renderframe.distance, b, 100);
-    toByte((int)renderframe.linesL, b);
-    toByte((int)renderframe.linesR, b);
+    b.write(renderframe.linesL<0?0:1);
+    toByte((int)abs(renderframe.linesL), b);
+    b.write(renderframe.linesR<0?0:1);
+    toByte((int)abs(renderframe.linesR), b);
     toByte((int)renderframe.steps, b);
     b.write(renderframe.linked?1:0);
     b.write(renderframe.dotted?1:0);
@@ -409,6 +411,56 @@ public class area {
     } else {
       b.write(0);
     }
+  }
+  
+  public int build(byte[] b, int pos) {
+    bWidth = toFloat(b[pos], b[pos+1], 1);
+    bHeight = toFloat(b[pos+2], b[pos+3], 1);
+    curvemode = (b[pos+4]==0?0:2);
+    pos+=5;
+    for (int i = 0; i < 4; i++) {
+      curve[i].x = toFloat(b[pos+(i*4)], b[pos+(i*4)+1], 1);
+      curve[i].y = toFloat(b[pos+(i*4)+2], b[pos+(i*4)+3], 1);
+    }
+    angle = toFloat(b[pos+16], b[pos+17], 1);
+    pos+=18;
+    if (b[pos]==1) {
+      boolean h = b[pos+1]==1?true:false;
+      float p = toFloat(b[pos+2], b[pos+3], 1);
+      if (h) {
+        div = new spacer(xPos+(aWidth/2), p, h, this);
+        areas[0] = new area(xPos, yPos, aWidth, p-yPos, this);
+        areas[1] = new area(xPos, p, aWidth, yPos+aHeight-p, this);
+      } else {
+        div = new spacer(p, yPos+(aHeight/2), h, this);
+        areas[0] = new area(xPos, yPos, p-xPos, aHeight, this);
+        areas[1] = new area(p, yPos, xPos+aWidth-p, aHeight, this);
+      }
+      registerDiv(div, h);
+      prints.remove(this);
+      pos = areas[0].build(b, pos+4);
+      pos = areas[1].build(b, pos);
+    } else {
+      pos++; 
+    }
+    return pos;
+  }
+  
+  public int buildRender(byte[] b, int pos) {
+    black = b[pos]==0?true:false;
+    renderframe.distance = toFloat(b[pos+1], b[pos+2], 100);
+    renderframe.linesL = (int)toFloat(b[pos+4], b[pos+5], 1)*(b[pos+3]==1?1:-1);
+    renderframe.linesR = (int)toFloat(b[pos+7], b[pos+8], 1)*(b[pos+6]==1?1:-1);
+    renderframe.steps = (int)toFloat(b[pos+9], b[pos+10], 1);
+    renderframe.linked = b[pos+11]==1?true:false;
+    renderframe.dotted = b[pos+12]==1?true:false;
+    if (b[pos+13]==1) {
+      pos = areas[0].buildRender(b, pos+14);
+      pos = areas[1].buildRender(b, pos);
+    } else {
+      pos+=14;
+    }
+    return pos;
   }
 
   public void mouseMoved(float mx, float my) {

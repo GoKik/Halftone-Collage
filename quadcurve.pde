@@ -368,7 +368,7 @@ float getDivPos(spacer d, float p) {
       }
     }
     p = min((ib!=-1?hor.get(ib).yPos-c:materialH), max(ia!=-1?hor.get(ia).yPos+c:0, p));
-    return p;
+    return round(p);
   } else {
     int i = vert.indexOf(d);
     int ia=-1, ib=-1;
@@ -385,7 +385,7 @@ float getDivPos(spacer d, float p) {
       }
     }
     p = min((ib!=-1?vert.get(ib).xPos-c:materialW), max(ia!=-1?vert.get(ia).xPos+c:0, p));
-    return p;
+    return round(p);
   }
 }
 
@@ -454,17 +454,26 @@ void getErrors() {
   minFree[0].x = float(round(minFree[0].x*100))/100;
 }
 
-void fileSelected(File selection) {
-  if (selection == null) {
+void fileSelected(File file) {
+  if (file == null) {
     println("Window was closed or the user hit cancel.");
   } else {
-    println("User selected " + selection.getAbsolutePath());
-    String file = selection.getAbsolutePath();
-    image = loadImage(file);
-    imgfile = file;
-    imgW = materialW;
-    imgF = (float)image.height/image.width;
-    image.filter(GRAY);
+    println("User selected " + file.getAbsolutePath());
+    if (isImage(file.getAbsolutePath())) {
+      image = loadImage(file.getAbsolutePath());
+      imgfile = file.getAbsolutePath();
+      imgW = materialW;
+      imgF = (float)image.height/image.width;
+      image.filter(GRAY);
+    } else {
+      importfile = file.getAbsolutePath();
+      byte[] input = loadBytes(importfile);
+      for (int i=0; i < 7; i++) {
+        imports[i] = input[i]==1;
+        packages[i] = input[i]==1;
+      }
+      importDial = true;
+    }
   }
 }
 
@@ -547,19 +556,21 @@ void toByte(int i, ByteArrayOutputStream list) {
   list.write(b);
 }
 
-void importProject(File file) {
-  if (file == null) {
-    println("Window was closed or the user hit cancel.");
-    return;
-  } else {
-    importfile = file.getAbsolutePath();
-    byte[] input = loadBytes(importfile);
-    for (int i=0; i < 7; i++) {
-      imports[i] = input[i]==1;
-      packages[i] = input[i]==1;
-    }
-    importDial = true;
+boolean isImage(String file) {
+  if (file.substring(file.length()-4, file.length()).equals(".jpg")) {
+    println("Image found");
+    return true;
   }
+  if (file.substring(file.length()-4, file.length()).equals(".png")) {
+    println("Image found");
+    return true; 
+  }
+  if (file.substring(file.length()-5, file.length()).equals(".jpeg")) {
+    println("Image found");
+    return true; 
+  }
+  println("Project-File found");
+  return false;
 }
 
 void startImport() {
@@ -630,6 +641,19 @@ void startImport() {
       pos+=12;
     }
     pos+=px;
+  }
+  if (input[4] == 1) {
+    pos = main.build(input, pos); 
+  }
+  if (input[5] == 1) {
+    pos = main.buildRender(input, pos);
+  }
+  if (pos == input.length) {
+    println("Import successfull!");
+  } else {
+    println("Failed import");
+    println(pos);
+    println(input.length);
   }
   importDial = false;
 }
@@ -714,7 +738,7 @@ void mouseClicked() {
     selectFolder("Select a folder to write to:", "printGcode");
   }
   if (mouseX > 20 && mouseX < sb/2-10 && mouseY > 40 && mouseY < 60) {
-    selectInput("Select Project File", "importProject");
+    selectInput("Select Project File", "fileSelected");
   }
   if (mouseX > sb/2+10 && mouseX < sb-20 && mouseY > 40 && mouseY < 60) {
     packages[0] = true;
@@ -870,7 +894,7 @@ void keyPressed() {
     exportDial = true;
   }
   if (key == 't') {
-    selectInput("Select Project File:", "importProject");
+    selectInput("Select Project File:", "fileSelected");
   }   
   if (key == ENTER || key == RETURN) {
     render = !render;
