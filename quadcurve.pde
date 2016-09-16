@@ -53,6 +53,7 @@ float[] ms = {0, 0};
 float scF;
 float materialX;
 float materialY;
+varButton[] buttons = new varButton[7];
 
 area main;
 int sb = 300;
@@ -62,13 +63,18 @@ boolean[] packages = {true, true, true, true, true, true, false};
 boolean[] imports = new boolean[7];
 String importfile;
 
+ArrayList<Action> history = new ArrayList<Action>();
+HashMap<String, OnChangeListener> listeners = new HashMap<String, OnChangeListener>();
+int hPos = 0;
+boolean ctrl = false;
+
 
 void setup() {
   size(1440, 850);
+  createListeners();
   configDimens();
-
   main = new area(0, 0, materialW, materialH, null);
-
+  configButtons();
   selectInput("Select a file to process:", "fileSelected");
 }
 
@@ -149,23 +155,17 @@ void draw() {
     rect(20, 40, (sb-60)/2, 20, 10);
     rect(40+(sb-60)/2, 40, (sb-60)/2, 20, 10);
     rect(sb-80, 95, 45, 20, 10);
-    int[] buttons = {80, 280, 305, 330, 355, 210, 235};
     for (int i=0; i<buttons.length; i++) { 
-      ellipse(sb-70, buttons[i], 20, 20);
-      ellipse(sb-45, buttons[i], 20, 20);
+      buttons[i].draw(false);
     }
     fill(bgCol);
     textAlign(CENTER, CENTER);
+    textSize(12);
     text("Render", 20+((sb-60)/4), 20-1);
     text("Generate Files", 40+((sb-60)*0.75), 20-1);
     text("Imprort Project", 20+((sb-60)/4), 50-1);
     text("Export Project", 40+((sb-60)*0.75), 50-1);
     text("Go", sb-57.5, 105-1);
-    textSize(15);
-    for (int i=0; i<buttons.length; i++) { 
-      text("-", sb-70, buttons[i]-3);
-      text("+", sb-45, buttons[i]-3);
-    }
   }
   if (exportDial) {
     translate(width*0.2, height*0.1);
@@ -563,11 +563,11 @@ boolean isImage(String file) {
   }
   if (file.substring(file.length()-4, file.length()).equals(".png")) {
     println("Image found");
-    return true; 
+    return true;
   }
   if (file.substring(file.length()-5, file.length()).equals(".jpeg")) {
     println("Image found");
-    return true; 
+    return true;
   }
   println("Project-File found");
   return false;
@@ -634,7 +634,7 @@ void startImport() {
       pos+=12;
       image.loadPixels();
       for (int i=0; i<image.pixels.length; i++) {
-        image.pixels[i] = (255<<24)|((input[pos+i]&0xff)<<16)|((input[pos+i]&0xff)<<8)|(input[pos+i]&0xff); 
+        image.pixels[i] = (255<<24)|((input[pos+i]&0xff)<<16)|((input[pos+i]&0xff)<<8)|(input[pos+i]&0xff);
       }
       image.updatePixels();
     } else {
@@ -643,7 +643,7 @@ void startImport() {
     pos+=px;
   }
   if (input[4] == 1) {
-    pos = main.build(input, pos); 
+    pos = main.build(input, pos);
   }
   if (input[5] == 1) {
     pos = main.buildRender(input, pos);
@@ -663,11 +663,230 @@ float toFloat(byte a, byte b, int f) {
   return float(i)/f;
 }
 
+void createListeners() {
+  listeners.put("materialW", new OnChangeListener() {
+    boolean wait = false;
+    float save = materialW;
+    public void saveForRender() {
+      wait = true;
+      save = materialW;
+    }
+    public void onChangeBy(int i) {
+      if (!wait) {
+        save = materialW;
+      }
+      materialW+=10*i;
+      if (materialW < 10) {
+        materialW = 10;
+      }
+      configDimens();
+    }
+    public void onChange(Object o) {
+      materialW = (float)o; 
+      configDimens();
+    }
+    public void onRender(boolean h) {
+      main.render();
+      if (h) {
+        history.add(new Action(save, materialW, this));
+      }
+      wait = false;
+    }
+  }
+  );
+  listeners.put("materialH", new OnChangeListener() {
+    boolean wait = false;
+    float save = materialH;
+    public void saveForRender() {
+      wait = true;
+      save = materialH;
+    }
+    public void onChangeBy(int i) {
+      if (!wait) {
+        save = materialH;
+      }
+      materialH+=10*i;
+      if (materialH < 10) {
+        materialH = 10;
+      }
+      configDimens();
+    }
+    public void onChange(Object o) {
+      materialH = (float)o; 
+      configDimens();
+    }
+    public void onRender(boolean h) {
+      main.render();
+      if (h) {
+        history.add(new Action(save, materialH, this));
+      }
+      wait = false;
+    }
+  }
+  );
+  listeners.put("sOut", new OnChangeListener() {
+    boolean wait = false;
+    float save = sOut;
+    public void saveForRender() {
+      wait = true;
+      save = sOut;
+    }
+    public void onChangeBy(int i) {
+      if (!wait) {
+        save = sOut;
+      }
+      sOut+=10*i;
+      if (sOut < 10) {
+        sOut = 10;
+      }
+    }
+    public void onChange(Object o) {
+      sOut = (float)o; 
+    }
+    public void onRender(boolean h) {
+      main.render();
+      if (h) {
+        history.add(new Action(save, sOut, this));
+      }
+      wait = false;
+    }
+  }
+  );
+  listeners.put("sIn", new OnChangeListener() {
+    boolean wait = false;
+    float save = sIn;
+    public void saveForRender() {
+      wait = true;
+      save = sIn;
+    }
+    public void onChangeBy(int i) {
+      if (!wait) {
+        save = sIn;
+      }
+      sIn+=10*i;
+      if (sIn < 10) {
+        sIn = 10;
+      }
+    }
+    public void onChange(Object o) {
+      sIn = (float)o; 
+    }
+    public void onRender(boolean h) {
+      main.render();
+      if (h) {
+        history.add(new Action(save, materialH, this));
+      }
+      wait = false;
+    }
+  }
+  );
+  listeners.put("sInD", new OnChangeListener() {
+    boolean wait = false;
+    float save = sInD;
+    public void saveForRender() {
+      wait = true;
+      save = sInD;
+    }
+    public void onChangeBy(int i) {
+      if (!wait) {
+        save = sInD;
+      }
+      sInD+=10*i;
+      if (sInD < 10) {
+        sInD = 10;
+      }
+    }
+    public void onChange(Object o) {
+      sInD = (float)o; 
+    }
+    public void onRender(boolean h) {
+      main.render();
+      if (h) {
+        history.add(new Action(save, sInD, this));
+      }
+      wait = false;
+    }
+  }
+  );
+  listeners.put("hOut", new OnChangeListener() {
+    boolean wait = false;
+    float save = hOut;
+    public void saveForRender() {
+      wait = true;
+      save = hOut;
+    }
+    public void onChangeBy(int i) {
+      if (!wait) {
+        save = hOut;
+      }
+      hOut+=0.5*i;
+      if (hOut < 0.5) {
+        hOut = 0.5;
+      }
+    }
+    public void onChange(Object o) {
+      hOut = (float)o; 
+    }
+    public void onRender(boolean h) {
+      main.render();
+      if (h) {
+        history.add(new Action(save, hOut, this));
+      }
+      wait = false;
+    }
+  }
+  );
+  listeners.put("maxRad", new OnChangeListener() {
+    boolean wait = false;
+    float save = maxRad;
+    public void saveForRender() {
+      wait = true;
+      save = maxRad;
+    }
+    public void onChangeBy(int i) {
+      if (!wait) {
+        save = maxRad;
+      }
+      maxRad = float(round((maxRad+(0.1*i))*10))/10;
+      if (maxRad < bitMin) {
+        maxRad = bitMin;
+      }
+      if (maxRad > bitW) {
+        maxRad = bitW;
+      }
+    }
+    public void onChange(Object o) {
+      maxRad = (float)o; 
+    }
+    public void onRender(boolean h) {
+      main.render();
+      if (h) {
+        history.add(new Action(save, maxRad, this));
+      }
+      wait = false;
+    }
+  }
+  );
+}
+
+void configButtons() {
+  buttons[0] = new varButton("-", "+", sb-57.5, 80, listeners.get("maxRad"));
+  buttons[1] = new varButton("-", "+", sb-57.5, 210, listeners.get("materialW"));
+  buttons[2] = new varButton("-", "+", sb-57.5, 235, listeners.get("materialH"));
+  buttons[3] = new varButton("-", "+", sb-57.5, 280, listeners.get("sOut"));
+  buttons[4] = new varButton("-", "+", sb-57.5, 305, listeners.get("sIn"));
+  buttons[5] = new varButton("-", "+", sb-57.5, 330, listeners.get("sInD"));
+  buttons[6] = new varButton("-", "+", sb-57.5, 355, listeners.get("hOut"));
+}
+
 void mouseMoved() {
   if (exportDial || importDial) {
     return;
   }
   main.mouseMoved(mouseX/scF-materialX, mouseY/scF-materialY);
+  for (int i=0; i<buttons.length; i++) {
+    buttons[i].mouseMoved(mouseX, mouseY);
+  }
 }
 
 void mouseDragged() {
@@ -675,6 +894,9 @@ void mouseDragged() {
     return;
   }
   main.mouseDragged(mouseX/scF-materialX, mouseY/scF-materialY);
+  for (int i=0; i<buttons.length; i++) {
+    buttons[i].mouseDragged(mouseX, mouseY);
+  }
 }
 
 void mouseClicked() {
@@ -730,6 +952,9 @@ void mouseClicked() {
     return;
   }
   main.mouseClicked(mouseX/scF-materialX, mouseY/scF-materialY);
+  for (int i=0; i<buttons.length; i++) {
+    buttons[i].mouseClicked(mouseX, mouseY);
+  }
   if (mouseX > 20 && mouseX < sb/2-10 && mouseY > 10 && mouseY < 30) {
     render = !render;
     change = true;
@@ -750,84 +975,6 @@ void mouseClicked() {
     packages[6] = true;
     exportDial = true;
   }
-  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-80)) < 10) {
-    maxRad = float(round((maxRad-0.1)*10))/10;
-    if (maxRad < bitMin) {
-      maxRad = bitMin;
-    }
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-80)) < 10) {
-    maxRad = float(round((maxRad+0.1)*10))/10;
-    if (maxRad > bitW) {
-      maxRad = bitW;
-    }
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-210)) < 10) {
-    materialW+=10;
-    configDimens();
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-210)) < 10) {
-    materialW-=10;
-    configDimens();
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-235)) < 10) {
-    materialH+=10;
-    configDimens();
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-235)) < 10) {
-    materialH-=10;
-    configDimens();
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-280)) < 10) {
-    sOut-=10;
-    if (sOut < 10) {
-      sOut = 10;
-    }
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-280)) < 10) {
-    sOut+=10;
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-305)) < 10) {
-    sIn-=10;
-    if (sIn < 10) {
-      sIn = 10;
-    }
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-305)) < 10) {
-    sIn+=10;
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-330)) < 10) {
-    sInD-=10;
-    if (sInD < 10) {
-      sInD = 10;
-    }
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-330)) < 10) {
-    sInD+=10;
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-70))+sq(mouseY-355)) < 10) {
-    hOut-=0.5;
-    if (hOut < 0.5) {
-      hOut = 0.5;
-    }
-    change = true;
-  }
-  if (sqrt(sq(mouseX-(sb-45))+sq(mouseY-355)) < 10) {
-    hOut+=0.5;
-    change = true;
-  }
   if (mouseX > sb-80 && mouseX < sb-35 && mouseY > 95 && mouseY < 115) {
     getErrors();
   }
@@ -841,6 +988,9 @@ void mouseReleased() {
     return;
   }
   main.mouseReleased(mouseX/scF-materialX, mouseY/scF-materialY);
+  for (int i=0; i<buttons.length; i++) {
+    buttons[i].mouseReleased(mouseX, mouseY);
+  }
 }
 
 void mousePressed() {
@@ -848,22 +998,30 @@ void mousePressed() {
     return;
   }
   main.mousePressed(mouseX/scF-materialX, mouseY/scF-materialY);
+  for (int i=0; i<buttons.length; i++) {
+    buttons[i].mousePressed(mouseX, mouseY);
+  }
 }
 
-void keyPressed() {
+void keyPressed(KeyEvent e) {
   if (exportDial || importDial) {
     return;
   }
-  if (key == '+') {
-    maxRad = float(round((maxRad+0.1)*10))/10;
-    if (maxRad > bitW) {
-      maxRad = bitW;
-    }
+  if (e.getKeyCode() == CONTROL) {
+    ctrl = true;
   }
-  if (key == '-') {
-    maxRad = float(round((maxRad-0.1)*10))/10;
-    if (maxRad < bitMin) {
-      maxRad = bitMin;
+  if (e.getKey() == 'z') {
+    println("Step Back");
+    if (e.isShiftDown()) {
+      if (hPos > 0) {
+        hPos--;
+        history.get(history.size()-1-hPos).back();
+      }
+    } else {
+      history.get(history.size()-1-hPos).back();
+      if (hPos < history.size()-1) {
+        hPos++;
+      }
     }
   }
   if (key == 'w') {
@@ -884,21 +1042,15 @@ void keyPressed() {
   if (key == 'e') {
     imgW+=5;
   }
-  if (key == 'p') {
-    selectFolder("Select a folder to write to:", "printGcode");
-  }
-  if (key == 'f') {
-    getErrors();
-  }
-  if (key == 'z') {
-    exportDial = true;
-  }
-  if (key == 't') {
-    selectInput("Select Project File:", "fileSelected");
-  }   
   if (key == ENTER || key == RETURN) {
     render = !render;
   }
   main.keyPressed();
   main.render();
+}
+
+void keyReleased(KeyEvent e) {
+  if (e.getKeyCode() == CONTROL) {
+    ctrl = false;
+  }
 }

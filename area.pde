@@ -24,18 +24,171 @@ public class area {
     xPos = x;
     yPos = y;
     bWidth = 10;
+    listeners.put(this.toString()+"bWidth", new OnChangeListener() {
+      boolean wait = false;
+      float save = bWidth;
+      public void saveForRender() {
+        wait = true;
+        save = bWidth;
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = bWidth;
+        }
+        bWidth+=i;
+        if (bWidth < 0) {
+          bWidth = 0;
+        }
+      }
+      public void onChange(Object o) {
+        bWidth = (float)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(save, bWidth, this));
+        }
+        wait = false;
+      }
+    });
     bHeight = 10;
+    listeners.put(this.toString()+"bHeight", new OnChangeListener() {
+      boolean wait = false;
+      float save = bHeight;
+      public void saveForRender() {
+        wait = true;
+        save = bHeight;
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = bHeight;
+        }
+        bHeight+=i;
+        if (bHeight < 0) {
+          bHeight = 0;
+        }
+      }
+      public void onChange(Object o) {
+        bHeight = (float)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(save, bHeight, this));
+        }
+        wait = false;
+      }
+    });
     parent = p;
     if (p == null) {
       curvemode = 2;
     }
+    listeners.put(this.toString()+"curvemode", new OnChangeListener() {
+      boolean wait = false;
+      float save = curvemode;
+      public void saveForRender() {
+        wait = true;
+        save = curvemode;
+      }
+      public void onChangeBy(int i) { }
+      public void onChange(Object o) {
+        curvemode = (int)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(save, curvemode, this));
+        }
+        wait = false;
+      }
+    });
     renderframe = new renderarea(this);
     prints.add(this);
 
     curve[0] = new Point(x+(0.4*w), y+(h*0.4));
+    listeners.put(this.toString()+"curve0", new OnChangeListener() {
+      boolean wait = false;
+      float savex = curve[0].x, savey = curve[0].y;
+      public void saveForRender() {
+        wait = true;
+        savex = curve[0].x;
+        savey = curve[0].y;
+      }
+      public void onChangeBy(int i) { }
+      public void onChange(Object o) {
+        curve[0] = (Point)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(new Point(savex, savey), curve[0], this));
+        }
+        wait = false;
+      }
+    });
     curve[1] = new Point(x+(0.45*w), y+(0.01*h));
+    listeners.put(this.toString()+"curve1", new OnChangeListener() {
+      boolean wait = false;
+      float savex = curve[1].x, savey = curve[1].y;
+      public void saveForRender() {
+        wait = true;
+        savex = curve[1].x;
+        savey = curve[1].y;
+      }
+      public void onChangeBy(int i) { }
+      public void onChange(Object o) {
+        curve[1] = (Point)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(new Point(savex, savey), curve[1], this));
+        }
+        wait = false;
+      }
+    });
     curve[2] = new Point(x+(0.55*w), y+(0.99*h));
+    listeners.put(this.toString()+"curve2", new OnChangeListener() {
+      boolean wait = false;
+      float savex = curve[2].x, savey = curve[2].y;
+      public void saveForRender() {
+        wait = true;
+        savex = curve[2].x;
+        savey = curve[2].y;
+      }
+      public void onChangeBy(int i) { }
+      public void onChange(Object o) {
+        curve[2] = (Point)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(new Point(savex, savey), curve[2], this));
+        }
+        wait = false;
+      }
+    });
     curve[3] = new Point(x+(0.6*w), y+(h*0.6));
+    listeners.put(this.toString()+"curve3", new OnChangeListener() {
+      boolean wait = false;
+      float savex = curve[3].x, savey = curve[3].y;
+      public void saveForRender() {
+        wait = true;
+        savex = curve[3].x;
+        savey = curve[3].y;
+      }
+      public void onChangeBy(int i) { }
+      public void onChange(Object o) {
+        curve[3] = (Point)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(new Point(savex, savey), curve[3], this));
+        }
+        wait = false;
+      }
+    });
   }
 
   public void draw() {
