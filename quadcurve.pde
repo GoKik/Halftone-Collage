@@ -31,7 +31,7 @@ float sIn = 150; // Feedrate
 float sOut = 700; // Seekrate
 float sInD = 400; // Feedrate Dotted
 
-color vCol = color(255, 255, 255);
+color vCol = color(246, 85, 59);
 color bgCol = color(30);
 
 ArrayList<area> prints = new ArrayList<area>();
@@ -66,7 +66,6 @@ String importfile;
 ArrayList<Action> history = new ArrayList<Action>();
 HashMap<String, OnChangeListener> listeners = new HashMap<String, OnChangeListener>();
 int hPos = 0;
-boolean ctrl = false;
 
 
 void setup() {
@@ -79,7 +78,7 @@ void setup() {
 }
 
 void draw() {
-  vCol = color(246, 85, 59);
+  vCol = color(255, 255, 255);
   bgCol = color(16, 16, 16);
   background(bgCol);
   translate(materialX*scF, materialY*scF);
@@ -565,7 +564,19 @@ boolean isImage(String file) {
     println("Image found");
     return true;
   }
+  if (file.substring(file.length()-4, file.length()).equals(".JPG")) {
+    println("Image found");
+    return true;
+  }
+  if (file.substring(file.length()-4, file.length()).equals(".PNG")) {
+    println("Image found");
+    return true;
+  }
   if (file.substring(file.length()-5, file.length()).equals(".jpeg")) {
+    println("Image found");
+    return true;
+  }
+  if (file.substring(file.length()-5, file.length()).equals(".JPEG")) {
     println("Image found");
     return true;
   }
@@ -1007,22 +1018,19 @@ void keyPressed(KeyEvent e) {
   if (exportDial || importDial) {
     return;
   }
-  if (e.getKeyCode() == CONTROL) {
-    ctrl = true;
-  }
   if (e.getKey() == 'z') {
     println("Step Back");
-    if (e.isShiftDown()) {
-      if (hPos > 0) {
-        hPos--;
-        history.get(history.size()-1-hPos).back();
-      }
-    } else {
       history.get(history.size()-1-hPos).back();
       if (hPos < history.size()-1) {
         hPos++;
       }
-    }
+    
+  }
+  if (key == 't') {
+    if (hPos > 0) {
+        hPos--;
+        history.get(history.size()-1-hPos).back();
+      }
   }
   if (key == 'w') {
     imgY--;
@@ -1047,10 +1055,4 @@ void keyPressed(KeyEvent e) {
   }
   main.keyPressed();
   main.render();
-}
-
-void keyReleased(KeyEvent e) {
-  if (e.getKeyCode() == CONTROL) {
-    ctrl = false;
-  }
 }
