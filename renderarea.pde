@@ -10,9 +10,6 @@ public class renderarea {
 
   public float time = 0;
   private float[] pos = new float[3];
-  
-  private String data = new String();
-  private long dataTime = 0;
 
   private ArrayList<ArrayList<Point>> avgs = new ArrayList<ArrayList<Point>>();
 
@@ -22,6 +19,143 @@ public class renderarea {
     parent = p;
     linesL = (int)(parent.aWidth / distance / 2);
     linesR = linesL;
+    listeners.put(this.toString()+"distance", new OnChangeListener() {
+      boolean wait = false;
+      float save = distance;
+      public void saveForRender() {
+        wait = true;
+        save = distance;
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = distance;
+        }
+        distance = float(round((distance+(0.1*i))*10))/10;
+      }
+      public void onChange(Object o) {
+        if (!wait) {
+          save = distance;
+        }
+        distance = (float)o;
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(save, distance, "Changed Distance to "+distance+" mm", this));
+        }
+        wait = false;
+      }
+    });
+    listeners.put(this.toString()+"linesL", new OnChangeListener() {
+      boolean wait = false;
+      int save = linesL;
+      public void saveForRender() {
+        wait = true;
+        save = linesL;
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = linesL;
+        }
+        linesL+=i;
+        if (linesL+linesR < 1) { 
+          linesL=1-linesR;
+        }
+      }
+      public void onChange(Object o) {
+        if (!wait) {
+          save = linesL;
+        }
+        linesL = (int)o;
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(save, linesL, "Changed Line-Count to "+(linesL+linesR), this));
+        }
+        wait = false;
+      }
+    });
+    listeners.put(this.toString()+"linesR", new OnChangeListener() {
+      boolean wait = false;
+      int save = linesR;
+      public void saveForRender() {
+        wait = true;
+        save = linesR;
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = linesR;
+        }
+        linesR+=i;
+        if (linesL+linesR < 1) { 
+          linesR=1-linesL;
+        }
+      }
+      public void onChange(Object o) {
+        if (!wait) {
+          save = linesR;
+        }
+        linesR = (int)o;
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(save, linesR, "Changed Line-Count to "+(linesL+linesR), this));
+        }
+        wait = false;
+      }
+    });
+    listeners.put(this.toString()+"steps", new OnChangeListener() {
+      boolean wait = false;
+      int save = steps;
+      public void saveForRender() {
+        wait = true;
+        save = steps;
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = steps;
+        }
+        steps+=i;
+        if (steps < 1) { 
+          steps = 1;
+        }
+      }
+      public void onChange(Object o) {
+        if (!wait) {
+          save = steps;
+        }
+        steps = (int)o;
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(save, steps, "Changed Steps to "+steps, this));
+        }
+        wait = false;
+      }
+    });
+    listeners.put(this.toString()+"linked", new OnChangeListener() {
+      public void saveForRender() {}
+      public void onChangeBy(int i) {}
+      public void onChange(Object o) {
+        linked = (boolean)o;
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(!linked, linked, (linked?"Linked":"Unlinked")+" Renderdata", this));
+        }
+      }
+    });
+    listeners.put(this.toString()+"dotted", new OnChangeListener() {
+      public void saveForRender() {}
+      public void onChangeBy(int i) {}
+      public void onChange(Object o) {
+        dotted = (boolean)o;
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(!dotted, dotted, "Set Rendering to "+(dotted?"Dotted":"Connected"), this));
+        }
+      }
+    });
   }
 
 
@@ -82,17 +216,6 @@ public class renderarea {
               ellipse(midx-0.8*s, midy-(1.7*s), 0.3*s, 0.3*s);
               ellipse(midx-0.4*s, midy-(1.7*s), 0.3*s, 0.3*s);
             }
-          }
-          if (dataTime + 2000 > millis()) {
-            int alpha = 255-int((float)(max(1500,millis()-dataTime)-1500)/500*255);
-            fill(bgCol, alpha);
-            noStroke();
-            rectMode(CENTER);
-            rect(midx, midy+1.7*s, textWidth(data)+s, s, 0.5*s);
-            textAlign(CENTER, CENTER);
-            fill(vCol, alpha);
-            text(data, midx, midy+1.7*s);
-            rectMode(CORNER);
           }
         } else {
           ellipse(midx, midy, s/2, s/2);
@@ -330,69 +453,58 @@ public class renderarea {
     float r = parent.s/2/scF;
     boolean click = false;
     if (mouseOver && sqrt(sq(mx-(midx-1.7*s))+sq(my-(midy-0.6*s))) < r) {
-      linesL++;
-      data = Integer.toString(linesL);
+      listeners.get(this.toString()+"linesL").onChangeBy(1);
+      listeners.get(this.toString()+"linesL").onRender(true);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy-0.6*s))) < r) {
-      if (linesL+linesR > 1) { 
-        linesL--;
-      }
-      data = Integer.toString(linesL);
+      listeners.get(this.toString()+"linesL").onChangeBy(-1);
+      listeners.get(this.toString()+"linesL").onRender(true);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy-0.6*s))) < r) {
-      if (linesL+linesR > 1) {
-        linesR--;
-      }
-      data = Integer.toString(linesR);
+      listeners.get(this.toString()+"linesR").onChangeBy(-1);
+      listeners.get(this.toString()+"linesR").onRender(true);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+1.7*s))+sq(my-(midy-0.6*s))) < r) {
-      linesR++;
-      data = Integer.toString(linesR);
+      listeners.get(this.toString()+"linesR").onChangeBy(1);
+      listeners.get(this.toString()+"linesR").onRender(true);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx-1.7*s))+sq(my-(midy+0.6*s))) < r) {
-      distance = float(round((distance+0.1)*10))/10;
-      data = Float.toString(distance)+"mm";
+      listeners.get(this.toString()+"distance").onChangeBy(1);
+      listeners.get(this.toString()+"distance").onRender(true);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy+0.6*s))) < r) {
-      distance = float(round((distance-0.1)*10))/10;
-      if (distance < 0) { 
-        distance = 0;
-      }
-      data = Float.toString(distance)+"mm";
+      listeners.get(this.toString()+"distance").onChangeBy(-1);
+      listeners.get(this.toString()+"distance").onRender(true);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy+0.6*s))) < r) {
-      steps++;
-      data = Integer.toString(steps);
+      listeners.get(this.toString()+"steps").onChangeBy(1);
+      listeners.get(this.toString()+"steps").onRender(true);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+1.7*s))+sq(my-(midy+0.6*s))) < r) {
-      steps--;
-      if (steps < 0) { 
-        steps = 0;
-      }
-      data = Integer.toString(steps);
+      listeners.get(this.toString()+"steps").onChangeBy(-1);
+      listeners.get(this.toString()+"steps").onRender(true);
       click = true;
     }
     if (mouseOver && !parent.ownC() && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy-1.7*s))) < r) {
-      linked = !linked;
-      data = (linked?"Linked":"Unlinked");
+      listeners.get(this.toString()+"linked").onChange(!linked);
+      listeners.get(this.toString()+"linked").onRender(true);
       click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy-1.7*s))) < r) {
-      dotted = !dotted;
-      data = (dotted?"Dotted":"Connected");
+      listeners.get(this.toString()+"dotted").onChange(!dotted);
+      listeners.get(this.toString()+"dotted").onRender(true);
       click = true;
     }
 
     if (render && click) {
       parent.setRenderData(this, linked);
-      dataTime = millis();
     }
   }
 

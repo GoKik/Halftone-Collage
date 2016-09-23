@@ -1,4 +1,4 @@
-public class area {
+public class area { //<>//
 
   public float aWidth, aHeight, bWidth, bHeight, xPos, yPos;
   public boolean black = false;
@@ -19,6 +19,7 @@ public class area {
   float s = 20;
 
   public area(float x, float y, float w, float h, area p) {
+    println(this.toString());
     aWidth = w;
     aHeight = h;
     xPos = x;
@@ -46,11 +47,12 @@ public class area {
       public void onRender(boolean h) {
         render();
         if (h) {
-          history.add(new Action(save, bWidth, this));
+          history.add(new Action(save, bWidth, "Changed Border Width to "+bWidth, this));
         }
         wait = false;
       }
-    });
+    }
+    );
     bHeight = 10;
     listeners.put(this.toString()+"bHeight", new OnChangeListener() {
       boolean wait = false;
@@ -74,121 +76,115 @@ public class area {
       public void onRender(boolean h) {
         render();
         if (h) {
-          history.add(new Action(save, bHeight, this));
+          history.add(new Action(save, bHeight, "Changed Border Height to "+bHeight, this));
         }
         wait = false;
       }
-    });
+    }
+    );
     parent = p;
     if (p == null) {
       curvemode = 2;
     }
-    listeners.put(this.toString()+"curvemode", new OnChangeListener() {
+    listeners.put(this.toString()+"angle", new OnChangeListener() {
       boolean wait = false;
-      float save = curvemode;
+      float save = angle;
       public void saveForRender() {
+        save = angle;
         wait = true;
-        save = curvemode;
       }
-      public void onChangeBy(int i) { }
+      public void onChangeBy(int i) {
+        angle+=i;
+        while (angle < 0) {
+          angle += 360;
+        }
+        while (angle > 360) {
+          angle-=360;
+        }
+      }
       public void onChange(Object o) {
-        curvemode = (int)o;
+        if (!wait) {
+          save = angle;
+        }
+        angle = (float)o;
       }
       public void onRender(boolean h) {
-        render();
         if (h) {
-          history.add(new Action(save, curvemode, this));
+          history.add(new Action(save, angle, "Changed Curve-Angle to "+angle, this));
         }
         wait = false;
       }
     });
+    listeners.put(this.toString()+"curvemode", new OnChangeListener() {
+      int save = curvemode;
+      public void saveForRender() {
+        save = curvemode;
+      }
+      public void onChangeBy(int i) { 
+        save = curvemode;
+        curvemode = (curvemode+i)%3;
+        if (parent == null && curvemode == 0) {
+          curvemode = 1;
+        }
+      }
+      public void onChange(Object o) {
+        save = curvemode;
+        curvemode = (int)o;
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(save, curvemode, "Selected Curvemode "+curvemode, this));
+        }
+      }
+    }
+    );
     renderframe = new renderarea(this);
     prints.add(this);
 
     curve[0] = new Point(x+(0.4*w), y+(h*0.4));
-    listeners.put(this.toString()+"curve0", new OnChangeListener() {
-      boolean wait = false;
-      float savex = curve[0].x, savey = curve[0].y;
-      public void saveForRender() {
-        wait = true;
-        savex = curve[0].x;
-        savey = curve[0].y;
-      }
-      public void onChangeBy(int i) { }
-      public void onChange(Object o) {
-        curve[0] = (Point)o;
-      }
-      public void onRender(boolean h) {
-        render();
-        if (h) {
-          history.add(new Action(new Point(savex, savey), curve[0], this));
-        }
-        wait = false;
-      }
-    });
     curve[1] = new Point(x+(0.45*w), y+(0.01*h));
-    listeners.put(this.toString()+"curve1", new OnChangeListener() {
-      boolean wait = false;
-      float savex = curve[1].x, savey = curve[1].y;
-      public void saveForRender() {
-        wait = true;
-        savex = curve[1].x;
-        savey = curve[1].y;
-      }
-      public void onChangeBy(int i) { }
-      public void onChange(Object o) {
-        curve[1] = (Point)o;
-      }
-      public void onRender(boolean h) {
-        render();
-        if (h) {
-          history.add(new Action(new Point(savex, savey), curve[1], this));
-        }
-        wait = false;
-      }
-    });
     curve[2] = new Point(x+(0.55*w), y+(0.99*h));
-    listeners.put(this.toString()+"curve2", new OnChangeListener() {
-      boolean wait = false;
-      float savex = curve[2].x, savey = curve[2].y;
-      public void saveForRender() {
-        wait = true;
-        savex = curve[2].x;
-        savey = curve[2].y;
-      }
-      public void onChangeBy(int i) { }
-      public void onChange(Object o) {
-        curve[2] = (Point)o;
-      }
-      public void onRender(boolean h) {
-        render();
-        if (h) {
-          history.add(new Action(new Point(savex, savey), curve[2], this));
-        }
-        wait = false;
-      }
-    });
     curve[3] = new Point(x+(0.6*w), y+(h*0.6));
-    listeners.put(this.toString()+"curve3", new OnChangeListener() {
-      boolean wait = false;
-      float savex = curve[3].x, savey = curve[3].y;
+    listeners.put(this.toString()+"curvefull", new OnChangeListener() {
+      float savex[] = {curve[0].x, curve[1].x, curve[2].x, curve[3].x};
+      float savey[] = {curve[0].y, curve[1].y, curve[2].y, curve[3].y};
       public void saveForRender() {
-        wait = true;
-        savex = curve[3].x;
-        savey = curve[3].y;
+        for (int i = 0; i < 4; i++) {
+          savex[i] = curve[i].x;
+          savey[i] = curve[i].y;
+        }
       }
-      public void onChangeBy(int i) { }
+      public void onChangeBy(int i) {
+      }
       public void onChange(Object o) {
-        curve[3] = (Point)o;
+        for (int i = 0; i < 4; i++) {
+          curve[i].x = ((Point[])o)[i].x; 
+          curve[i].y = ((Point[])o)[i].y;
+        }
       }
       public void onRender(boolean h) {
-        render();
         if (h) {
-          history.add(new Action(new Point(savex, savey), curve[3], this));
+          Point[] temp = {new Point(savex[0], savey[0]), new Point(savex[1], savey[1]), new Point(savex[2], savey[2]), new Point(savex[3], savey[3])};
+          history.add(new Action(temp, curve, "Reset Curve", this));
         }
-        wait = false;
       }
-    });
+    }
+    );
+    listeners.put(this.toString()+"black", new OnChangeListener() {
+      public void saveForRender() {
+      }
+      public void onChangeBy(int i) {
+      }
+      public void onChange(Object o) {
+        black = (boolean)o;
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(!black, black, "Changed Coloring to "+(black?"Black":"White"), this));
+        }
+      }
+    }
+    );
   }
 
   public void draw() {
@@ -268,6 +264,7 @@ public class area {
       fill(vCol);
       stroke(bgCol);
       ellipse(midx, midy, s, s);
+      ellipse(midx-s, midy, s*0.8, s*0.8);
       noFill();
       beginShape();
       vertex(midx, midy-(0.3*s));
@@ -275,6 +272,9 @@ public class area {
       endShape();
       stroke(vCol);
       arc(midx, midy, s*3, s*3, radians(angle)-QUARTER_PI, radians(angle)+QUARTER_PI);
+      stroke(bgCol);
+      line(midx-(1.2*s), midy-0.2*s, midx-0.8*s, midy+0.2*s);
+      line(midx-(1.2*s), midy+0.2*s, midx-0.8*s, midy-0.2*s);
       fill(255);
       ellipse(midx+(1.5*s)*cos(radians(angle)), midy+(1.5*s)*sin(radians(angle)), s, s);
     } 
@@ -392,37 +392,37 @@ public class area {
       renderframe.getErrors();
     }
   }
-  
+  /*
   public float[] getBounds(int mode) {
-    float[] bounds = new float[2];
-    if (mode == 1) {
-      bounds[0] = 0;
-      bounds[1] = aWidth/2;
-    }
-    if (mode == 2) {
-      bounds[0] = 0;
-      bounds[1] = aHeight/2;
-    }
-    if (mode == 3) {
-      bounds[0] = 0;
-      if (parent == null) {
-        bounds[1] = 10000;
-      } else {
-        float spPos = parent.div.horizontal?parent.div.yPos:parent.div.xPos;
-        if (parent.areas[0] == this) {
-          
-        } else {
-          
-        }
-      }
-    }
-    if (mode == 4) {
-      bounds[0] = 0;
-      bounds[1] = 200;
-    }
-    return bounds;
-  }
-
+   float[] bounds = new float[2];
+   if (mode == 1) {
+   bounds[0] = 0;
+   bounds[1] = aWidth/2;
+   }
+   if (mode == 2) {
+   bounds[0] = 0;
+   bounds[1] = aHeight/2;
+   }
+   if (mode == 3) {
+   bounds[0] = 0;
+   if (parent == null) {
+   bounds[1] = 10000;
+   } else {
+   float spPos = parent.div.horizontal?parent.div.yPos:parent.div.xPos;
+   if (parent.areas[0] == this) {
+   
+   } else {
+   
+   }
+   }
+   }
+   if (mode == 4) {
+   bounds[0] = 0;
+   bounds[1] = 200;
+   }
+   return bounds;
+   }
+   */
   public void transform(float n, boolean h) {
     if (h) {
       areas[0].aHeight = n-yPos;
@@ -526,7 +526,7 @@ public class area {
       areas[1].print(folder);
     }
   }
-  
+
   void exportDimens(ByteArrayOutputStream b) {
     toByte((int)bWidth, b);
     toByte((int)bHeight, b);
@@ -546,7 +546,7 @@ public class area {
       b.write(0);
     }
   }
-  
+
   void exportRender(ByteArrayOutputStream b) {
     b.write(black?0:1);
     toByte(renderframe.distance, b, 100);
@@ -565,7 +565,7 @@ public class area {
       b.write(0);
     }
   }
-  
+
   public int build(byte[] b, int pos) {
     bWidth = toFloat(b[pos], b[pos+1], 1);
     bHeight = toFloat(b[pos+2], b[pos+3], 1);
@@ -594,11 +594,11 @@ public class area {
       pos = areas[0].build(b, pos+4);
       pos = areas[1].build(b, pos);
     } else {
-      pos++; 
+      pos++;
     }
     return pos;
   }
-  
+
   public int buildRender(byte[] b, int pos) {
     black = b[pos]==0?true:false;
     renderframe.distance = toFloat(b[pos+1], b[pos+2], 100);
@@ -644,44 +644,50 @@ public class area {
       areas[1].mouseClicked(mx, my);
       div.mouseClicked(mx, my);
     } else {
-      if (mouseOver && !render) {
-        if (sqrt(sq(mx-(xPos+(aWidth/2)-(s/scF)))+sq(my-(yPos+(aHeight/2)))) <= s/2/scF) {
+      float midx = xPos+(aWidth/2);
+      float midy = yPos+(aHeight/2);
+      if (curvemode != 1 && mouseOver && !render) {
+        if (sqrt(sq(mx-(midx-(s/scF)))+sq(my-midy)) <= s/2/scF) {
           divide(true);
         }
-        if (sqrt(sq(mx-(xPos+(aWidth/2)+(s/scF)))+sq(my-(yPos+(aHeight/2)))) <= s/2/scF) {
+        if (sqrt(sq(mx-(midx+(s/scF)))+sq(my-midy)) <= s/2/scF) {
           divide(false);
         }
-        if (sqrt(sq(mx-(xPos+(aWidth/2)))+sq(my-(yPos+(aHeight/2)-(s/scF)))) <= s/2/scF) {
-          black = !black;
+        if (sqrt(sq(mx-midx)+sq(my-(midy-(s/scF)))) <= s/2/scF) {
+          listeners.get(this.toString()+"black").onChange(!black);
+          listeners.get(this.toString()+"black").onRender(true);
         }
-        if (sqrt(sq(mx-(xPos+(aWidth/2)))+sq(my-(yPos+(aHeight/2)+(s/scF)))) <= s/2/scF) {
-          curvemode = (curvemode+1)%3;
-          if (parent == null && curvemode == 0) {
-            curvemode = 1;
-          }
+        if (sqrt(sq(mx-midx)+sq(my-(midy+(s/scF)))) <= s/2/scF) {
+          listeners.get(this.toString()+"curvemode").onChangeBy(1);
+          listeners.get(this.toString()+"curvemode").onRender(true);
         }
-        if (sqrt(sq(mx-(xPos+(aWidth/2)+(2.25*s/scF)))+sq(my-(yPos+(aHeight/2)-(0.5*s/scF)))) <= s/2/scF) {
-          bHeight++;
+        if (sqrt(sq(mx-(midx+(2.25*s/scF)))+sq(my-(midy-(0.5*s/scF)))) <= s/2/scF) {
+          listeners.get(this.toString()+"bHeigth").onChangeBy(1);
+          listeners.get(this.toString()+"bHeight").onRender(true);
         }
-        if (sqrt(sq(mx-(xPos+(aWidth/2)+(2.25*s/scF)))+sq(my-(yPos+(aHeight/2)+(0.5*s/scF)))) <= s/2/scF) {
-          bHeight--;
-          if (bHeight < 0) { 
-            bHeight = 0;
-          }
+        if (sqrt(sq(mx-(midx+(2.25*s/scF)))+sq(my-(midy+(0.5*s/scF)))) <= s/2/scF) {
+          listeners.get(this.toString()+"bHeigth").onChangeBy(-1);
+          listeners.get(this.toString()+"bHeight").onRender(true);
         }
-        if (sqrt(sq(mx-(xPos+(aWidth/2)-(0.5*s/scF)))+sq(my-(yPos+(aHeight/2)+(2.25*s/scF)))) <= s/2/scF) {
-          bWidth++;
+        if (sqrt(sq(mx-(midx-(0.5*s/scF)))+sq(my-(midy+(2.25*s/scF)))) <= s/2/scF) {
+          listeners.get(this.toString()+"bWidth").onChangeBy(1);
+          listeners.get(this.toString()+"bWidth").onRender(true);
         }
-        if (sqrt(sq(mx-(xPos+(aWidth/2)+(0.5*s/scF)))+sq(my-(yPos+(aHeight/2)+(2.25*s/scF)))) <= s/2/scF) {
-          bWidth--;
-          if (bWidth < 0) { 
-            bWidth = 0;
-          }
+        if (sqrt(sq(mx-(midx+(0.5*s/scF)))+sq(my-(midy+(2.25*s/scF)))) <= s/2/scF) {
+          listeners.get(this.toString()+"bWidth").onChangeBy(-1);
+          listeners.get(this.toString()+"bWidth").onRender(true);
         }
       }
       if (curvemode == 1 && !render) {
-        if (sqrt(sq(mx-(xPos+(aWidth/2)))+sq(my-(yPos+(aHeight/2)))) < s/2/scF) {
-          curvemode = 2;
+        if (sqrt(sq(mx-midx)+sq(my-midy)) < s/2/scF) {
+          listeners.get(this.toString()+"curvemode").onChange((int)2);
+          listeners.get(this.toString()+"curvemode").onRender(true);
+        }
+        if (sqrt(sq(mx-(midx-s))+sq(my-midy)) < s/scF*0.4) {
+          Point[] newc = {new Point(xPos+(0.4*aWidth), yPos+(aHeight*0.4)), new Point(xPos+(0.45*aWidth), yPos+(0.01*aHeight)), new Point(xPos+(0.55*aWidth), yPos+(0.99*aHeight)), new Point(xPos+(0.6*aWidth), yPos+(aHeight*0.6))};
+          listeners.get(this.toString()+"curvefull").saveForRender();
+          listeners.get(this.toString()+"curvefull").onChange(newc);
+          listeners.get(this.toString()+"curvefull").onRender(true);
         }
       }
       renderframe.mouseClicked(mx, my);
@@ -695,12 +701,13 @@ public class area {
       div.mousePressed(mx, my);
     }
     if (curvemode == 1) {
-      curve[0].press(mx, my);
-      curve[1].press(mx, my);
-      curve[2].press(mx, my);
-      curve[3].press(mx, my);
+      curve[0].drag(mx, my);
+      curve[1].drag(mx, my);
+      curve[2].drag(mx, my);
+      curve[3].drag(mx, my);
       if (sqrt(sq(mx-(xPos+(aWidth/2)+cos(radians(angle))*(1.5*s/scF)))+sq(my-(yPos+(aHeight/2)+sin(radians(angle))*(1.5*s/scF)))) < s/2/scF) {
         adrag = true;
+        listeners.get(this.toString()+"angle").saveForRender();
       }
     }
   }
@@ -711,7 +718,14 @@ public class area {
       areas[1].mouseReleased(mx, my);
       div.mouseReleased(mx, my);
     }
-    adrag = false;
+    curve[0].release();
+    curve[1].release();
+    curve[2].release();
+    curve[3].release();
+    if (adrag) {
+      listeners.get(this.toString()+"angle").onRender(true);
+      adrag = false;
+    }
   }
 
   public void mouseDragged(float mx, float my) {
@@ -721,16 +735,16 @@ public class area {
       div.mouseDragged(mx, my);
     }
     if (curvemode == 1) {
-      curve[0].press(mx, my);
-      curve[1].press(mx, my);
-      curve[2].press(mx, my);
-      curve[3].press(mx, my);
+      curve[0].drag(mx, my);
+      curve[1].drag(mx, my);
+      curve[2].drag(mx, my);
+      curve[3].drag(mx, my);
       if (adrag) {
         float r = sqrt(sq(mx - (xPos+(aWidth/2))) + sq(my - (yPos+(aHeight/2))));
         if ((yPos+(aHeight/2)) > my) { 
-          angle = degrees(acos((float)((xPos+(aWidth/2)) - mx)/(r))) + 180;
+          listeners.get(this.toString()+"angle").onChange(degrees(acos((float)((xPos+(aWidth/2)) - mx)/(r))) + 180);
         } else {
-          angle = degrees(acos((float)((xPos+(aWidth/2)) - mx)/(-r)));
+          listeners.get(this.toString()+"angle").onChange(degrees(acos((float)((xPos+(aWidth/2)) - mx)/(-r))));
         }
       }
     }

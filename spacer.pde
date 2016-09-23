@@ -8,12 +8,53 @@ public class spacer {
   private float dragx = 0, dragy = 0;
   private int valMode = 0;
   private String valInput = new String();
+  
+  spacer thisspacer = this;
 
   public spacer(float x, float y, boolean h, area p) {
     xPos = x;
     yPos = y;
     horizontal = h;
     parent = p;
+    listeners.put(this.toString()+"pos", new OnChangeListener() {
+      boolean wait = false;
+      float save = (horizontal?yPos:xPos);
+      public void saveForRender() {
+        wait = true;
+        save = (horizontal?yPos:xPos);
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = (horizontal?yPos:xPos);
+        }
+        if (horizontal) {
+          yPos = getDivPos(thisspacer, yPos+i);
+          parent.transform(yPos, horizontal);
+        } else {
+          xPos = getDivPos(thisspacer, xPos+i);
+          parent.transform(xPos, horizontal);
+        }
+      }
+      public void onChange(Object o) {
+        if (!wait) {
+          save = (horizontal?yPos:xPos);
+        }
+        if (horizontal) {
+          yPos = getDivPos(thisspacer, (float)o);
+          parent.transform(yPos, horizontal);
+        } else {
+          xPos = getDivPos(thisspacer, (float)o);
+          parent.transform(xPos, horizontal);
+        }
+      }
+      public void onRender(boolean h) {
+        if (h) {
+          history.add(new Action(save,(horizontal?yPos:xPos), "Changed Divider-Position to "+(horizontal?yPos:xPos), this));
+        }
+        wait = false;
+      }
+    });
+        
   }
 
   public void draw() {
@@ -85,8 +126,8 @@ public class spacer {
         if (valMode != 0) {
           valMode = 0;
           if (valInput.length() != 0 && Float.parseFloat(valInput) != parent.areas[0].aHeight) {
-            yPos = getDivPos(this, parent.yPos+Float.parseFloat(valInput));
-            parent.transform(yPos, horizontal);
+            listeners.get(this.toString()+"pos").onChange(parent.yPos+Float.parseFloat(valInput));
+            listeners.get(this.toString()+"pos").onRender(true);
           }
         } else {
           valMode = 1;
@@ -97,8 +138,8 @@ public class spacer {
         if (valMode != 0) {
           valMode = 0;
           if (valInput.length() != 0 && Float.parseFloat(valInput) != parent.areas[1].aHeight) {
-            yPos = getDivPos(this, parent.yPos+parent.aHeight-Float.parseFloat(valInput));
-            parent.transform(yPos, horizontal);
+            listeners.get(this.toString()+"pos").onChange(parent.yPos+parent.aHeight-Float.parseFloat(valInput));
+            listeners.get(this.toString()+"pos").onRender(true);
           }
         } else {
           valMode = 2;
@@ -110,8 +151,8 @@ public class spacer {
         if (valMode != 0) {
           valMode = 0;
           if (valInput.length() != 0 && Float.parseFloat(valInput) != parent.areas[0].aWidth) {
-            xPos = getDivPos(this, parent.xPos+Float.parseFloat(valInput));
-            parent.transform(xPos, horizontal);
+            listeners.get(this.toString()+"pos").onChange(parent.xPos+Float.parseFloat(valInput));
+            listeners.get(this.toString()+"pos").onRender(true);
           }
         } else {
           valMode = 1;
@@ -122,8 +163,8 @@ public class spacer {
         if (valMode != 0) {
           valMode = 0;
           if (valInput.length() != 0 && Float.parseFloat(valInput) != parent.areas[1].aWidth) {
-            xPos = getDivPos(this, parent.xPos+parent.aWidth-Float.parseFloat(valInput));
-            parent.transform(xPos, horizontal);
+            listeners.get(this.toString()+"pos").onChange(parent.xPos+parent.aWidth-Float.parseFloat(valInput));
+            listeners.get(this.toString()+"pos").onRender(true);
           }
         } else {
           valMode = 2;
@@ -139,23 +180,21 @@ public class spacer {
       dragged = true;
       dragx = xPos - mx;
       dragy = yPos - my;
+      listeners.get(this.toString()+"pos").saveForRender();
     }
   }
 
   public void mouseDragged(float mx, float my) {
     if (dragged) {
-      if (horizontal) {
-        yPos = getDivPos(this, my + dragy);
-        parent.transform(yPos, horizontal);
-      } else {
-        xPos = getDivPos(this, mx + dragx);
-        parent.transform(xPos, horizontal);
-      }
+      listeners.get(this.toString()+"pos").onChange(horizontal?my+dragy:mx+dragx);
     }
   }
 
   public void mouseReleased(float mx, float my) {
-    dragged = false;
+    if (dragged) {
+      dragged = false;
+      listeners.get(this.toString()+"pos").onRender(true);
+    }
   }
   
   public void keyPressed() {

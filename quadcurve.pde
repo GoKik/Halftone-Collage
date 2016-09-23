@@ -4,16 +4,10 @@ import java.io.ByteArrayOutputStream;
  enter: prerender image
  w,a,s,d: move image
  q,e: scale image
- y, x, c, v: num of lines
- left, right: distance between lines
- +, -: size of milling-bit
- l, j, i, k: size of border
- up, down: steps per line (for dotted images choose a low number and set "dotted = true"
- p: print gcode
- f: show overlap of lines
- z: export settings
- t: inport settings
+ z: undo
+ t: redo
  */
+
 
 //set dimensions of your milling-bit
 //use a cone-shaped bit
@@ -66,6 +60,8 @@ String importfile;
 ArrayList<Action> history = new ArrayList<Action>();
 HashMap<String, OnChangeListener> listeners = new HashMap<String, OnChangeListener>();
 int hPos = 0;
+long labelTime = 0;
+String actionlabel = new String();
 
 
 void setup() {
@@ -165,6 +161,15 @@ void draw() {
     text("Imprort Project", 20+((sb-60)/4), 50-1);
     text("Export Project", 40+((sb-60)*0.75), 50-1);
     text("Go", sb-57.5, 105-1);
+    if (labelTime+5000>millis()) {
+      int alpha = 255-int((float)(max(4500,millis()-labelTime)-4500)/500*255);
+      fill(vCol, alpha);
+      noStroke();
+      rect(20, height-40, textWidth(actionlabel)+20, 20, 10);
+      textAlign(LEFT, CENTER);
+      fill(bgCol, alpha);
+      text(actionlabel, 30, height-30);
+    }
   }
   if (exportDial) {
     translate(width*0.2, height*0.1);
@@ -301,6 +306,11 @@ void draw() {
       rect(width*0.3-115, height*0.8-35, 110, 30);
     }
   }
+}
+
+void label(String l) {
+  labelTime = millis();
+  actionlabel = l;
 }
 
 void configDimens() {
@@ -699,7 +709,7 @@ void createListeners() {
     public void onRender(boolean h) {
       main.render();
       if (h) {
-        history.add(new Action(save, materialW, this));
+        history.add(new Action(save, materialW, "Changed Width to "+materialW, this));
       }
       wait = false;
     }
@@ -729,7 +739,7 @@ void createListeners() {
     public void onRender(boolean h) {
       main.render();
       if (h) {
-        history.add(new Action(save, materialH, this));
+        history.add(new Action(save, materialH, "Changed Height to "+materialH, this));
       }
       wait = false;
     }
@@ -757,7 +767,7 @@ void createListeners() {
     public void onRender(boolean h) {
       main.render();
       if (h) {
-        history.add(new Action(save, sOut, this));
+        history.add(new Action(save, sOut, "Changed Seekrate to "+sOut, this));
       }
       wait = false;
     }
@@ -785,7 +795,7 @@ void createListeners() {
     public void onRender(boolean h) {
       main.render();
       if (h) {
-        history.add(new Action(save, materialH, this));
+        history.add(new Action(save, sIn, "Changed Feedrate to "+sIn, this));
       }
       wait = false;
     }
@@ -813,7 +823,7 @@ void createListeners() {
     public void onRender(boolean h) {
       main.render();
       if (h) {
-        history.add(new Action(save, sInD, this));
+        history.add(new Action(save, sInD, "Changed Feedrate(Dtd.) to "+sInD, this));
       }
       wait = false;
     }
@@ -841,7 +851,7 @@ void createListeners() {
     public void onRender(boolean h) {
       main.render();
       if (h) {
-        history.add(new Action(save, hOut, this));
+        history.add(new Action(save, hOut, "Changed Floating-Height to "+hOut, this));
       }
       wait = false;
     }
@@ -872,7 +882,7 @@ void createListeners() {
     public void onRender(boolean h) {
       main.render();
       if (h) {
-        history.add(new Action(save, maxRad, this));
+        history.add(new Action(save, maxRad, "Changed Max. Radius to "+maxRad, this));
       }
       wait = false;
     }
@@ -1020,16 +1030,15 @@ void keyPressed(KeyEvent e) {
   }
   if (e.getKey() == 'z') {
     println("Step Back");
-      history.get(history.size()-1-hPos).back();
+      history.get(history.size()-1-hPos).back(true);
       if (hPos < history.size()-1) {
         hPos++;
       }
-    
   }
   if (key == 't') {
     if (hPos > 0) {
         hPos--;
-        history.get(history.size()-1-hPos).back();
+        history.get(history.size()-1-hPos).back(false);
       }
   }
   if (key == 'w') {
