@@ -1,6 +1,6 @@
 public class area { //<>//
 
-  public float aWidth, aHeight, bWidth, bHeight, xPos, yPos;
+  public float aWidth, aHeight, bUp, bLeft, bDown, bRight, xPos, yPos;
   public boolean black = false;
 
   private area[] areas = new area[2];
@@ -15,6 +15,7 @@ public class area { //<>//
   private float angle = 0;
 
   private boolean adrag = false;
+  private varButton[] buttons = new varButton[4];
 
   float s = 20;
 
@@ -24,59 +25,117 @@ public class area { //<>//
     aHeight = h;
     xPos = x;
     yPos = y;
-    bWidth = 10;
-    listeners.put(this.toString()+"bWidth", new OnChangeListener() {
+    bLeft = 10;
+    bRight = 10;
+    listeners.put(this.toString()+"bLeft", new OnChangeListener() {
       boolean wait = false;
-      float save = bWidth;
+      float save = bLeft;
       public void saveForRender() {
         wait = true;
-        save = bWidth;
+        save = bLeft;
       }
       public void onChangeBy(int i) {
         if (!wait) {
-          save = bWidth;
+          save = bLeft;
         }
-        bWidth+=i;
-        if (bWidth < 0) {
-          bWidth = 0;
+        bLeft+=i;
+        if (bLeft < 0) {
+          bLeft = 0;
         }
       }
       public void onChange(Object o) {
-        bWidth = (float)o;
+        bLeft = (float)o;
       }
       public void onRender(boolean h) {
         render();
         if (h) {
-          history.add(new Action(save, bWidth, "Changed Border Width to "+bWidth, this));
+          history.add(new Action(save, bLeft, "Changed Border Width to "+bLeft, this));
         }
         wait = false;
       }
     }
     );
-    bHeight = 10;
-    listeners.put(this.toString()+"bHeight", new OnChangeListener() {
+    listeners.put(this.toString()+"bRight", new OnChangeListener() {
       boolean wait = false;
-      float save = bHeight;
+      float save = bRight;
       public void saveForRender() {
         wait = true;
-        save = bHeight;
+        save = bRight;
       }
       public void onChangeBy(int i) {
         if (!wait) {
-          save = bHeight;
+          save = bRight;
         }
-        bHeight+=i;
-        if (bHeight < 0) {
-          bHeight = 0;
+        bRight-=i;
+        if (bRight < 0) {
+          bRight = 0;
         }
       }
       public void onChange(Object o) {
-        bHeight = (float)o;
+        bRight = (float)o;
       }
       public void onRender(boolean h) {
         render();
         if (h) {
-          history.add(new Action(save, bHeight, "Changed Border Height to "+bHeight, this));
+          history.add(new Action(save, bRight, "Changed Border Width to "+bRight, this));
+        }
+        wait = false;
+      }
+    }
+    );
+    bUp = 10;
+    bDown = 10;
+    listeners.put(this.toString()+"bUp", new OnChangeListener() {
+      boolean wait = false;
+      float save = bUp;
+      public void saveForRender() {
+        wait = true;
+        save = bUp;
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = bUp;
+        }
+        bUp+=i;
+        if (bUp < 0) {
+          bUp = 0;
+        }
+      }
+      public void onChange(Object o) {
+        bUp = (float)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(save, bUp, "Changed Border Height to "+bUp, this));
+        }
+        wait = false;
+      }
+    }
+    );
+    listeners.put(this.toString()+"bDown", new OnChangeListener() {
+      boolean wait = false;
+      float save = bDown;
+      public void saveForRender() {
+        wait = true;
+        save = bDown;
+      }
+      public void onChangeBy(int i) {
+        if (!wait) {
+          save = bDown;
+        }
+        bDown-=i;
+        if (bDown < 0) {
+          bDown = 0;
+        }
+      }
+      public void onChange(Object o) {
+        bDown = (float)o;
+      }
+      public void onRender(boolean h) {
+        render();
+        if (h) {
+          history.add(new Action(save, bDown, "Changed Border Height to "+bDown, this));
         }
         wait = false;
       }
@@ -86,6 +145,10 @@ public class area { //<>//
     if (p == null) {
       curvemode = 2;
     }
+    buttons[0] = new varButton("-", "+", xPos*scF+(aWidth/2)*scF+s*2.5, yPos*scF+(aHeight/2)*scF-s*1.4, false, listeners.get(this.toString()+"bUp"));
+    buttons[1] = new varButton("+", "-", xPos*scF+(aWidth/2)*scF+s*2.5, yPos*scF+(aHeight/2)*scF+s*0.9, false, listeners.get(this.toString()+"bDown"));
+    buttons[2] = new varButton("-", "+", xPos*scF+(aWidth/2)*scF-s*1.4, yPos*scF+(aHeight/2)*scF+s*2.5, true, listeners.get(this.toString()+"bLeft"));
+    buttons[3] = new varButton("+", "-", xPos*scF+(aWidth/2)*scF+s*0.9, yPos*scF+(aHeight/2)*scF+s*2.5, true, listeners.get(this.toString()+"bRight"));
     listeners.put(this.toString()+"angle", new OnChangeListener() {
       boolean wait = false;
       float save = angle;
@@ -114,7 +177,8 @@ public class area { //<>//
         }
         wait = false;
       }
-    });
+    }
+    );
     listeners.put(this.toString()+"curvemode", new OnChangeListener() {
       int save = curvemode;
       public void saveForRender() {
@@ -206,8 +270,8 @@ public class area { //<>//
             fill(bgCol, 200);
             ellipse(midx, midy, 3.5*s, 3.5*s);
             rectMode(CENTER);
-            rect(midx+s*2.25, midy, s, s*2.5, s/2);
-            rect(midx, midy+s*2.25, s*2.5, s, s/2);
+            rect(midx+s*2.5, midy-s*0.2, s*1.2, s*5.1, s/2);
+            rect(midx-s*0.2, midy+s*2.5, s*5.1, s*1.2, s/2);
             rectMode(CORNER);
             fill(vCol);
             ellipse(midx-s, midy, s, s);
@@ -232,14 +296,9 @@ public class area { //<>//
               fill(255);
             }
             ellipse(midx, midy-s, s/2, s/2);
-            stroke(vCol);
-            line(midx+(s*2), midy-(0.5*s), midx+(s*2.5), midy-(0.5*s));
-            line(midx+(2.25*s), midy-(0.25*s), midx+(2.25*s), midy-(0.75*s));
-            line(midx+(2*s), midy+(0.5*s), midx+(2.5*s), midy+(0.5*s));
-
-            line(midx-(0.5*s), midy+(2*s), midx-(0.5*s), midy+(2.5*s));
-            line(midx-(0.25*s), midy+(2.25*s), midx-(0.75*s), midy+(s*2.25));
-            line(midx+(0.25*s), midy+(2.25*s), midx+(0.75*s), midy+(2.25*s));
+            for (int i=0; i<buttons.length; i++) {
+              buttons[i].draw(true);
+            }
           } else {
             fill(bgCol, 200);
             ellipse(midx, midy, s, s);
@@ -281,10 +340,10 @@ public class area { //<>//
     if (!render && areas[0] == null && areas[1] == null) {
       fill(bgCol);
       noStroke();
-      rect(xPos*scF, yPos*scF, bWidth*scF, aHeight*scF);
-      rect(xPos*scF, yPos*scF, aWidth*scF, bHeight*scF);
-      rect(xPos*scF+aWidth*scF-bWidth*scF, yPos*scF, bWidth*scF, aHeight*scF);
-      rect(xPos*scF, yPos*scF+aHeight*scF-bHeight*scF, aWidth*scF, bHeight*scF);
+      rect(xPos*scF, yPos*scF, bLeft*scF, aHeight*scF);
+      rect(xPos*scF, yPos*scF, aWidth*scF, bUp*scF);
+      rect(xPos*scF+aWidth*scF-bRight*scF, yPos*scF, bRight*scF, aHeight*scF);
+      rect(xPos*scF, yPos*scF+aHeight*scF-bDown*scF, aWidth*scF, bDown*scF);
     }
   }
 
@@ -528,8 +587,10 @@ public class area { //<>//
   }
 
   void exportDimens(ByteArrayOutputStream b) {
-    toByte((int)bWidth, b);
-    toByte((int)bHeight, b);
+    toByte((int)bLeft, b);
+    toByte((int)bRight, b);
+    toByte((int)bUp, b);
+    toByte((int)bDown, b);
     b.write(curvemode==0?0:1);
     for (int i = 0; i < 4; i++) {
       toByte((int)curve[i].x, b);
@@ -567,10 +628,12 @@ public class area { //<>//
   }
 
   public int build(byte[] b, int pos) {
-    bWidth = toFloat(b[pos], b[pos+1], 1);
-    bHeight = toFloat(b[pos+2], b[pos+3], 1);
-    curvemode = (b[pos+4]==0?0:2);
-    pos+=5;
+    bLeft = toFloat(b[pos], b[pos+1], 1);
+    bRight = toFloat(b[pos+2], b[pos+3], 1);
+    bUp = toFloat(b[pos+4], b[pos+5], 1);
+    bDown = toFloat(b[pos+6], b[pos+7], 1);
+    curvemode = (b[pos+8]==0?0:2);
+    pos+=9;
     for (int i = 0; i < 4; i++) {
       curve[i].x = toFloat(b[pos+(i*4)], b[pos+(i*4)+1], 1);
       curve[i].y = toFloat(b[pos+(i*4)+2], b[pos+(i*4)+3], 1);
@@ -625,8 +688,13 @@ public class area { //<>//
       if (!mouseOver && sqrt(sq(mx-(xPos+(aWidth/2)))+sq(my-(yPos+(aHeight/2)))) <= s/2/scF) {
         mouseOver = true;
       }
-      if (mouseOver && sqrt(sq(mx-(xPos+(aWidth/2)))+sq(my-(yPos+(aHeight/2)))) > s*3/scF) {
+      if (mouseOver && sqrt(sq(mx-(xPos+(aWidth/2)))+sq(my-(yPos+(aHeight/2)))) > s*4/scF) {
         mouseOver = false;
+      }
+      if (mouseOver) {
+        for (int i=0; i<buttons.length; i++) {
+          buttons[i].mouseMoved(mx*scF, my*scF);
+        }
       }
       renderframe.mouseMoved(mx, my);
     }
@@ -661,21 +729,8 @@ public class area { //<>//
           listeners.get(this.toString()+"curvemode").onChangeBy(1);
           listeners.get(this.toString()+"curvemode").onRender(true);
         }
-        if (sqrt(sq(mx-(midx+(2.25*s/scF)))+sq(my-(midy-(0.5*s/scF)))) <= s/2/scF) {
-          listeners.get(this.toString()+"bHeigth").onChangeBy(1);
-          listeners.get(this.toString()+"bHeight").onRender(true);
-        }
-        if (sqrt(sq(mx-(midx+(2.25*s/scF)))+sq(my-(midy+(0.5*s/scF)))) <= s/2/scF) {
-          listeners.get(this.toString()+"bHeigth").onChangeBy(-1);
-          listeners.get(this.toString()+"bHeight").onRender(true);
-        }
-        if (sqrt(sq(mx-(midx-(0.5*s/scF)))+sq(my-(midy+(2.25*s/scF)))) <= s/2/scF) {
-          listeners.get(this.toString()+"bWidth").onChangeBy(1);
-          listeners.get(this.toString()+"bWidth").onRender(true);
-        }
-        if (sqrt(sq(mx-(midx+(0.5*s/scF)))+sq(my-(midy+(2.25*s/scF)))) <= s/2/scF) {
-          listeners.get(this.toString()+"bWidth").onChangeBy(-1);
-          listeners.get(this.toString()+"bWidth").onRender(true);
+        for (int i=0; i<buttons.length; i++) {
+          buttons[i].mouseClicked(mx*scF, my*scF);
         }
       }
       if (curvemode == 1 && !render) {
@@ -699,6 +754,11 @@ public class area { //<>//
       areas[0].mousePressed(mx, my);
       areas[1].mousePressed(mx, my);
       div.mousePressed(mx, my);
+    } else {
+      renderframe.mousePressed(mx, my);
+      for (int i=0; i<buttons.length; i++) {
+        buttons[i].mousePressed(mx*scF, my*scF);
+      }
     }
     if (curvemode == 1) {
       curve[0].drag(mx, my);
@@ -716,7 +776,12 @@ public class area { //<>//
     if (areas[0] != null && areas[1] != null) {
       areas[0].mouseReleased(mx, my);
       areas[1].mouseReleased(mx, my);
-      div.mouseReleased(mx, my);
+      div.mouseReleased();
+    } else {
+      renderframe.mouseReleased();
+      for (int i=0; i<buttons.length; i++) {
+        buttons[i].mouseReleased();
+      }
     }
     curve[0].release();
     curve[1].release();
@@ -733,6 +798,11 @@ public class area { //<>//
       areas[0].mouseDragged(mx, my);
       areas[1].mouseDragged(mx, my);
       div.mouseDragged(mx, my);
+    } else {
+      renderframe.mouseDragged(mx, my);
+      for (int i=0; i<buttons.length; i++) {
+        buttons[i].mouseDragged(mx*scF, my*scF);
+      }
     }
     if (curvemode == 1) {
       curve[0].drag(mx, my);

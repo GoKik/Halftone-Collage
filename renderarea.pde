@@ -10,10 +10,12 @@ public class renderarea {
 
   public float time = 0;
   private float[] pos = new float[3];
+  private varButton[] buttons = new varButton[4];
 
   private ArrayList<ArrayList<Point>> avgs = new ArrayList<ArrayList<Point>>();
 
   private boolean mouseOver;
+  private renderarea thisarea = this;
 
   public renderarea(area p) {
     parent = p;
@@ -30,7 +32,7 @@ public class renderarea {
         if (!wait) {
           save = distance;
         }
-        distance = float(round((distance+(0.1*i))*10))/10;
+        distance = float(round((distance-(0.1*i))*10))/10;
       }
       public void onChange(Object o) {
         if (!wait) {
@@ -42,9 +44,11 @@ public class renderarea {
         if (h) {
           history.add(new Action(save, distance, "Changed Distance to "+distance+" mm", this));
         }
+        parent.setRenderData(thisarea, linked);
         wait = false;
       }
-    });
+    }
+    );
     listeners.put(this.toString()+"linesL", new OnChangeListener() {
       boolean wait = false;
       int save = linesL;
@@ -56,7 +60,7 @@ public class renderarea {
         if (!wait) {
           save = linesL;
         }
-        linesL+=i;
+        linesL-=i;
         if (linesL+linesR < 1) { 
           linesL=1-linesR;
         }
@@ -71,9 +75,11 @@ public class renderarea {
         if (h) {
           history.add(new Action(save, linesL, "Changed Line-Count to "+(linesL+linesR), this));
         }
+        parent.setRenderData(thisarea, linked);
         wait = false;
       }
-    });
+    }
+    );
     listeners.put(this.toString()+"linesR", new OnChangeListener() {
       boolean wait = false;
       int save = linesR;
@@ -100,9 +106,11 @@ public class renderarea {
         if (h) {
           history.add(new Action(save, linesR, "Changed Line-Count to "+(linesL+linesR), this));
         }
+        parent.setRenderData(thisarea, linked);
         wait = false;
       }
-    });
+    }
+    );
     listeners.put(this.toString()+"steps", new OnChangeListener() {
       boolean wait = false;
       int save = steps;
@@ -114,7 +122,7 @@ public class renderarea {
         if (!wait) {
           save = steps;
         }
-        steps+=i;
+        steps-=i;
         if (steps < 1) { 
           steps = 1;
         }
@@ -130,11 +138,15 @@ public class renderarea {
           history.add(new Action(save, steps, "Changed Steps to "+steps, this));
         }
         wait = false;
+        parent.setRenderData(thisarea, linked);
       }
-    });
+    }
+    );
     listeners.put(this.toString()+"linked", new OnChangeListener() {
-      public void saveForRender() {}
-      public void onChangeBy(int i) {}
+      public void saveForRender() {
+      }
+      public void onChangeBy(int i) {
+      }
       public void onChange(Object o) {
         linked = (boolean)o;
       }
@@ -142,11 +154,15 @@ public class renderarea {
         if (h) {
           history.add(new Action(!linked, linked, (linked?"Linked":"Unlinked")+" Renderdata", this));
         }
+        parent.setRenderData(thisarea, linked);
       }
-    });
+    }
+    );
     listeners.put(this.toString()+"dotted", new OnChangeListener() {
-      public void saveForRender() {}
-      public void onChangeBy(int i) {}
+      public void saveForRender() {
+      }
+      public void onChangeBy(int i) {
+      }
       public void onChange(Object o) {
         dotted = (boolean)o;
       }
@@ -154,8 +170,14 @@ public class renderarea {
         if (h) {
           history.add(new Action(!dotted, dotted, "Set Rendering to "+(dotted?"Dotted":"Connected"), this));
         }
+        parent.setRenderData(thisarea, linked);
       }
-    });
+    }
+    );
+    buttons[0] = new varButton("+", "-", parent.xPos*scF+(parent.aWidth/2)*scF-parent.s*1.2, parent.yPos*scF+(parent.aHeight/2)*scF-0.6*parent.s, true, listeners.get(this.toString()+"linesL"));
+    buttons[1] = new varButton("-", "+", parent.xPos*scF+(parent.aWidth/2)*scF+parent.s*1.2, parent.yPos*scF+(parent.aHeight/2)*scF-0.6*parent.s, true, listeners.get(this.toString()+"linesR"));
+    buttons[2] = new varButton("◄", "►", parent.xPos*scF+(parent.aWidth/2)*scF-parent.s*1.2, parent.yPos*scF+(parent.aHeight/2)*scF+0.6*parent.s, true, listeners.get(this.toString()+"distance"));
+    buttons[3] = new varButton("▲", "▼", parent.xPos*scF+(parent.aWidth/2)*scF+parent.s*1.2, parent.yPos*scF+(parent.aHeight/2)*scF+0.6*parent.s, true, listeners.get(this.toString()+"steps"));
   }
 
 
@@ -163,7 +185,7 @@ public class renderarea {
     if (render) {
       noStroke();
       fill(parent.black?0:255);
-      rect(parent.xPos*scF+parent.bWidth*scF, parent.yPos*scF+parent.bHeight*scF, parent.aWidth*scF-parent.bWidth*scF*2, parent.aHeight*scF-parent.bHeight*scF*2);
+      rect(parent.xPos*scF+parent.bLeft*scF, parent.yPos*scF+parent.bUp*scF, parent.aWidth*scF-parent.bLeft*scF*2, parent.aHeight*scF-parent.bDown*scF*2);
       fill(parent.black?255:0);
       noStroke();
       for (int i = 0; i < avgs.size(); i++) {
@@ -177,27 +199,8 @@ public class renderarea {
       if (!print) {
         if (mouseOver) {
           fill(parent.black?vCol:bgCol);
-          ellipse(midx-(1.7*s), midy-(0.6*s), s, s);
-          ellipse(midx-(0.6*s), midy-(0.6*s), s, s);
-          ellipse(midx+(0.6*s), midy-(0.6*s), s, s);
-          ellipse(midx+(1.7*s), midy-(0.6*s), s, s);
-          ellipse(midx-(1.7*s), midy+(0.6*s), s, s);
-          ellipse(midx-(0.6*s), midy+(0.6*s), s, s);
-          ellipse(midx+(0.6*s), midy+(0.6*s), s, s);
-          ellipse(midx+(1.7*s), midy+(0.6*s), s, s);
           ellipse(midx+(0.6*s), midy-(1.7*s), s, s);
           fill(parent.black?bgCol:vCol);
-          textSize(s*0.9);
-          textAlign(CENTER, CENTER);
-          text("+", midx-(1.7*s), midy-(0.8*s));
-          text("-", midx-(0.6*s), midy-(0.8*s));
-          text("-", midx+(0.6*s), midy-(0.8*s));
-          text("+", midx+(1.7*s), midy-(0.8*s));
-          textSize(s*0.6);
-          text("◄", midx-(1.8*s), midy+(0.5*s));
-          text("►", midx-(0.6*s), midy+(0.5*s));
-          text("▲", midx+(0.6*s), midy+(0.5*s));
-          text("▼", midx+(1.7*s), midy+(0.6*s));
           if (dotted) {
             ellipse(midx+(0.8*s), midy-(1.7*s), 0.3*s, 0.3*s);
             ellipse(midx+(0.4*s), midy-(1.7*s), 0.3*s, 0.3*s);
@@ -217,7 +220,11 @@ public class renderarea {
               ellipse(midx-0.4*s, midy-(1.7*s), 0.3*s, 0.3*s);
             }
           }
+          for (int i = 0; i < buttons.length; i++) {
+            buttons[i].draw(parent.black);
+          }
         } else {
+          fill(parent.black?vCol:bgCol);
           ellipse(midx, midy, s/2, s/2);
         }
       }
@@ -272,7 +279,7 @@ public class renderarea {
   }
 
   void addPoint(int i, Point p) {
-    if (p.x > parent.xPos+parent.bWidth && p.x < parent.xPos+parent.aWidth-parent.bWidth && p.y > parent.yPos+parent.bHeight && p.y < parent.yPos+parent.aHeight-parent.bHeight) {
+    if (p.x > parent.xPos+parent.bLeft && p.x < parent.xPos+parent.aWidth-parent.bRight && p.y > parent.yPos+parent.bUp && p.y < parent.yPos+parent.aHeight-parent.bDown) {
       avgs.get(i).add(p);
     }
   }
@@ -362,10 +369,10 @@ public class renderarea {
     output.add("G90");
     output.add("G1 Z5.0 F"+sOut);
     go(null, null, (float)5, sOut);
-    output.add("G1 X"+(parent.aWidth-parent.bWidth*2)+" F"+sOut);
-    go((parent.aWidth-parent.bWidth*2), null, null, sOut);
-    output.add("G1 Y"+(parent.aHeight-parent.bHeight*2)+" F"+sOut);
-    go(null, (parent.aHeight-parent.bHeight*2), null, sOut);
+    output.add("G1 X"+parent.aWidth+" F"+sOut);
+    go(parent.aWidth, null, null, sOut);
+    output.add("G1 Y"+parent.aHeight+" F"+sOut);
+    go(null, parent.aHeight, null, sOut);
     output.add("G1 X0 F"+sOut);
     go((float)0, null, null, sOut);
     output.add("G1 Y0 F"+sOut);
@@ -373,7 +380,7 @@ public class renderarea {
     for (int i = 0; i < avgs.size(); i++) {
       for (int j = (i%2==0?0:avgs.get(i).size()-1); (i%2==0?j<avgs.get(i).size():j>=0); j+=(i%2==0?1:-1)) {
         Point p = new Point(avgs.get(i).get(j).x, avgs.get(i).get(j).y, avgs.get(i).get(j).data);
-        p.y = parent.aHeight-parent.bHeight*2-p.y;
+        p.y = parent.aHeight-p.y;
         if (dotted) {
           if (p.data > 0) {
             output.add("G0 X"+p.x+" Y"+p.y+" F"+sOut);
@@ -444,6 +451,17 @@ public class renderarea {
     if (sqrt(sq(mx-(parent.xPos+(parent.aWidth/2)))+sq(my-(parent.yPos+(parent.aHeight/2)))) > parent.s*3/scF) {
       mouseOver = false;
     }
+    if (mouseOver) {
+      for (int i=0; i<buttons.length; i++) {
+        buttons[i].mouseMoved(mx*scF, my*scF);
+      }
+    }
+  }
+
+  void mouseDragged(float mx, float my) {
+    for (int i=0; i<buttons.length; i++) {
+      buttons[i].mouseDragged(mx*scF, my*scF);
+    }
   }
 
   void mouseClicked(float mx, float my) {
@@ -451,61 +469,31 @@ public class renderarea {
     float midy = parent.yPos+(parent.aHeight/2);
     float s = parent.s/scF;
     float r = parent.s/2/scF;
-    boolean click = false;
-    if (mouseOver && sqrt(sq(mx-(midx-1.7*s))+sq(my-(midy-0.6*s))) < r) {
-      listeners.get(this.toString()+"linesL").onChangeBy(1);
-      listeners.get(this.toString()+"linesL").onRender(true);
-      click = true;
-    }
-    if (mouseOver && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy-0.6*s))) < r) {
-      listeners.get(this.toString()+"linesL").onChangeBy(-1);
-      listeners.get(this.toString()+"linesL").onRender(true);
-      click = true;
-    }
-    if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy-0.6*s))) < r) {
-      listeners.get(this.toString()+"linesR").onChangeBy(-1);
-      listeners.get(this.toString()+"linesR").onRender(true);
-      click = true;
-    }
-    if (mouseOver && sqrt(sq(mx-(midx+1.7*s))+sq(my-(midy-0.6*s))) < r) {
-      listeners.get(this.toString()+"linesR").onChangeBy(1);
-      listeners.get(this.toString()+"linesR").onRender(true);
-      click = true;
-    }
-    if (mouseOver && sqrt(sq(mx-(midx-1.7*s))+sq(my-(midy+0.6*s))) < r) {
-      listeners.get(this.toString()+"distance").onChangeBy(1);
-      listeners.get(this.toString()+"distance").onRender(true);
-      click = true;
-    }
-    if (mouseOver && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy+0.6*s))) < r) {
-      listeners.get(this.toString()+"distance").onChangeBy(-1);
-      listeners.get(this.toString()+"distance").onRender(true);
-      click = true;
-    }
-    if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy+0.6*s))) < r) {
-      listeners.get(this.toString()+"steps").onChangeBy(1);
-      listeners.get(this.toString()+"steps").onRender(true);
-      click = true;
-    }
-    if (mouseOver && sqrt(sq(mx-(midx+1.7*s))+sq(my-(midy+0.6*s))) < r) {
-      listeners.get(this.toString()+"steps").onChangeBy(-1);
-      listeners.get(this.toString()+"steps").onRender(true);
-      click = true;
+    if (mouseOver) {
+      for (int i=0; i<buttons.length; i++) {
+        buttons[i].mouseClicked(mx*scF, my*scF);
+      }
     }
     if (mouseOver && !parent.ownC() && sqrt(sq(mx-(midx-0.6*s))+sq(my-(midy-1.7*s))) < r) {
       listeners.get(this.toString()+"linked").onChange(!linked);
       listeners.get(this.toString()+"linked").onRender(true);
-      click = true;
     }
     if (mouseOver && sqrt(sq(mx-(midx+0.6*s))+sq(my-(midy-1.7*s))) < r) {
       listeners.get(this.toString()+"dotted").onChange(!dotted);
       listeners.get(this.toString()+"dotted").onRender(true);
-      click = true;
     }
 
-    if (render && click) {
-      parent.setRenderData(this, linked);
-    }
   }
-
+  
+  void mouseReleased() {
+    for (int i=0; i<buttons.length; i++) {
+    buttons[i].mouseReleased();
+  }
+  }
+  
+  void mousePressed(float mx, float my) {
+    for (int i=0; i<buttons.length; i++) {
+    buttons[i].mousePressed(mx*scF, my*scF);
+  }
+  }
 }

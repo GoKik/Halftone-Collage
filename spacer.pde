@@ -190,7 +190,7 @@ public class spacer {
     }
   }
 
-  public void mouseReleased(float mx, float my) {
+  public void mouseReleased() {
     if (dragged) {
       dragged = false;
       listeners.get(this.toString()+"pos").onRender(true);
