@@ -339,16 +339,16 @@ public class renderarea {
       for (int i2 = 0; i2 < avgs.get(i).size(); i2++) {
         for (int j = 0; j < avgs.size(); j++) {
           for (int j2 = 0; j2 < avgs.get(j).size(); j2++) {
-            float r = sqrt(sq(avgs.get(i).get(i2).x - avgs.get(j).get(j2).x) + sq(avgs.get(i).get(i2).y - avgs.get(j).get(j2).y));
             if ((dotted && (i != j || i2 != j2)) || (!dotted && i != j)) {
+            float r = sqrt(sq(avgs.get(i).get(i2).x - avgs.get(j).get(j2).x) + sq(avgs.get(i).get(i2).y - avgs.get(j).get(j2).y));
               if (r <= (avgs.get(i).get(i2).data/2) + (avgs.get(j).get(j2).data/2)) {
                 errors.add(new Point[]{avgs.get(i).get(i2), avgs.get(j).get(j2)});
               }
               float free = r - ((avgs.get(i).get(i2).data/2) + (avgs.get(j).get(j2).data/2));
               if (minFree[0] == null || free < minFree[0].x) {
                 minFree[0] = new Point(free, 0);
-                minFree[1] = avgs.get(i).get(i2);
-                minFree[2] = avgs.get(j).get(j2);
+                minFree[1] = new Point(avgs.get(i).get(i2).x+parent.xPos, avgs.get(i).get(i2).y+parent.yPos);
+                minFree[2] = new Point(avgs.get(j).get(j2).x+parent.xPos, avgs.get(j).get(j2).y+parent.yPos);
               }
             }
           }

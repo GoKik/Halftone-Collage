@@ -98,11 +98,14 @@ void draw() {
       for (int i = 0; i < errors.size(); i++) {
         line(errors.get(i)[0].x*scF, errors.get(i)[0].y*scF, errors.get(i)[1].x*scF, errors.get(i)[1].y*scF);
       }
-      if (minFree[0] != null) {
-        stroke(255, 255, 0);
+      if (minFree[0] != null && minFree[0].x >= 0) {
+        fill(255, 0, 0);
+        textSize(20);
+        textAlign(CENTER, CENTER);
+        text("x",(minFree[1].x+minFree[2].x)/2*scF, (minFree[1].y+minFree[2].y)/2*scF-8);
         noFill();
-        ellipse((minFree[1].x+minFree[2].x)/2, (minFree[1].y+minFree[2].y)/2, 10/minFree[0].x, 10/minFree[0].x);
-        ellipse((minFree[1].x+minFree[2].x)/2, (minFree[1].y+minFree[2].y)/2, 3/minFree[0].x, 3/minFree[0].x);
+        stroke(255, 0, 0);
+        ellipse((minFree[1].x+minFree[2].x)/2*scF, (minFree[1].y+minFree[2].y)/2*scF-3, 15, 15);
       }
     }
   }
@@ -121,27 +124,28 @@ void draw() {
   textAlign(LEFT, CENTER);
 
   text("Max. Radius: "+maxRad+"mm", 20, 80);
-  text("Min. Free: "+(minFree[0]==null?"/":minFree[0].x)+"mm", 20, 105);
-  text("Bit Width: "+bitW+"mm", 20, 140);
-  text("Bit Min: "+bitMin+"mm", 20, 165);
-  text("Material Width: "+materialW+"mm", 20, 210);
-  text("Material Height: "+materialH+"mm", 20, 235);
-  text("Seekrate: "+sOut+"mm/min", 20, 280);
-  text("Feedrate: "+sIn+"mm/min", 20, 305);
-  text("Feedrate (Dot.): "+sInD+"mm/min", 20, 330);
-  text("Floating Height: "+hOut+"mm", 20, 355);
+  text("Res. Depth: "+((float)round((maxRad/bitW)*bitH*10)/10)+"mm", 20, 105);
+  text("Min. Free: "+(minFree[0]==null?"/":minFree[0].x)+"mm", 20, 130);
+  text("Bit Width: "+bitW+"mm", 20, 165);
+  text("Bit Min: "+bitMin+"mm", 20, 190);
+  text("Material Width: "+materialW+"mm", 20, 235);
+  text("Material Height: "+materialH+"mm", 20, 260);
+  text("Seekrate: "+sOut+"mm/min", 20, 305);
+  text("Feedrate: "+sIn+"mm/min", 20, 330);
+  text("Feedrate (Dot.): "+sInD+"mm/min", 20, 355);
+  text("Floating Height: "+hOut+"mm", 20, 380);
 
-  text("Part Count: "+prints.size(), 20, 400);
+  text("Part Count: "+prints.size(), 20, 425);
   float sum = 0;
   for (int i = 0; i < prints.size(); i++) {
     int h = (int)prints.get(i).time()/60;
     int m = (int)prints.get(i).time()-h*60;
-    text("Part "+(i+1)+": "+h+"h "+m+"m  - W: "+prints.get(i).aWidth+"mm, H: "+prints.get(i).aHeight+"mm", 20, 455+(i*25));
+    text("Part "+(i+1)+": "+h+"h "+m+"m  - W: "+prints.get(i).aWidth+"mm, H: "+prints.get(i).aHeight+"mm", 20, 480+(i*25));
     sum += prints.get(i).time();
   }
   int h = (int)sum/60;
   int m = (int)sum-h*60;
-  text("Approx. Milling Time (All): "+h+"h "+m+"m", 20, 425);
+  text("Approx. Milling Time (All): "+h+"h "+m+"m", 20, 450);
 
   if (!print) {
     fill(vCol);
@@ -149,7 +153,7 @@ void draw() {
     rect(40+(sb-60)/2, 10, (sb-60)/2, 20, 10);
     rect(20, 40, (sb-60)/2, 20, 10);
     rect(40+(sb-60)/2, 40, (sb-60)/2, 20, 10);
-    rect(sb-80, 95, 45, 20, 10);
+    rect(sb-80, 120, 45, 20, 10);
     for (int i=0; i<buttons.length; i++) { 
       buttons[i].draw(false);
     }
@@ -160,7 +164,7 @@ void draw() {
     text("Generate Files", 40+((sb-60)*0.75), 20-1);
     text("Imprort Project", 20+((sb-60)/4), 50-1);
     text("Export Project", 40+((sb-60)*0.75), 50-1);
-    text("Go", sb-57.5, 105-1);
+    text("Go", sb-57.5, 130-1);
     if (labelTime+5000>millis()) {
       int alpha = 255-int((float)(max(4500,millis()-labelTime)-4500)/500*255);
       fill(vCol, alpha);
@@ -461,7 +465,9 @@ void getErrors() {
   minFree = new Point[3];
   errors.clear();
   main.getErrors();
+  if (minFree[0] != null) {
   minFree[0].x = float(round(minFree[0].x*100))/100;
+  }
 }
 
 void fileSelected(File file) {
@@ -897,12 +903,12 @@ void createListeners() {
 
 void configButtons() {
   buttons[0] = new varButton("-", "+", sb-57.5, 80, true, listeners.get("maxRad"));
-  buttons[1] = new varButton("-", "+", sb-57.5, 210, true, listeners.get("materialW"));
-  buttons[2] = new varButton("-", "+", sb-57.5, 235, true, listeners.get("materialH"));
-  buttons[3] = new varButton("-", "+", sb-57.5, 280, true, listeners.get("sOut"));
-  buttons[4] = new varButton("-", "+", sb-57.5, 305, true, listeners.get("sIn"));
-  buttons[5] = new varButton("-", "+", sb-57.5, 330, true, listeners.get("sInD"));
-  buttons[6] = new varButton("-", "+", sb-57.5, 355, true, listeners.get("hOut"));
+  buttons[1] = new varButton("-", "+", sb-57.5, 235, true, listeners.get("materialW"));
+  buttons[2] = new varButton("-", "+", sb-57.5, 260, true, listeners.get("materialH"));
+  buttons[3] = new varButton("-", "+", sb-57.5, 305, true, listeners.get("sOut"));
+  buttons[4] = new varButton("-", "+", sb-57.5, 330, true, listeners.get("sIn"));
+  buttons[5] = new varButton("-", "+", sb-57.5, 355, true, listeners.get("sInD"));
+  buttons[6] = new varButton("-", "+", sb-57.5, 380, true, listeners.get("hOut"));
 }
 
 void mouseMoved() {
@@ -1001,7 +1007,7 @@ void mouseClicked() {
     packages[6] = true;
     exportDial = true;
   }
-  if (mouseX > sb-80 && mouseX < sb-35 && mouseY > 95 && mouseY < 115) {
+  if (mouseX > sb-80 && mouseX < sb-35 && mouseY > 120 && mouseY < 140) {
     getErrors();
   }
   if (change) {
